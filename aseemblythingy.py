@@ -62,8 +62,15 @@ def main():
                 hlt()
             else:
                 if(commands[0][-1] == ':'):
-                    label(commands[0])
+                    label(commands[0][::-1])
             pc = pc + 1
+    if(len(errorstack)==0):
+        for x in binaryStack:
+            print(x)
+    else:
+        for x in errorstack:
+            print(x)
+    
 
 
 def takeInput():
@@ -98,11 +105,16 @@ def checkWholeRange(val):
 
 def checkVar(vari):
     if(vari not in variableStack):
+        if(label in labelStack):
+            errorstack.append("label is misused as a variable " + vari)
         errorstack.append("variable is undefined " + vari)
 
 def checkLabel(addr):
-    if(addr not in variableStack):
-        errorstack.append("label is undefined " + addr)
+    if(addr not in labelStack):
+        if(addr in variableStack):
+            errorstack.append("variable is misused as a label " + addr)
+        errorstack.append("label is undefined" + addr)
+
 def immtoBinary(val):
     return format(val, '08b')
 def regtoBinary(r1):
@@ -135,6 +147,13 @@ def var(name):
     varCounter = varCounter + 1
 
 def label(name):
+    if(name in labelStack):
+        errorstack.append("Label already declared")
+        return
+    labelStack[name] = [pc, varCounter]
+    varCounter = varCounter + 1
+
+
 
 def add(r1,r2,r3):
     if(!checkRegBounds(r1,r2,r3)):
@@ -202,29 +221,28 @@ def cmp(r1,r2):
 
 def unconJmp(label):
     if(!checkLabel(label)):
-        binaryStack.append('11111' + '000' + immtoBinary(labelStack.get(label)))
-
+        binaryStack.append('11111' + '000' + immtoBinary(labelStack.get(label)[1]))
 
 def lessJmp(addr):
     if(!checkLabel(label)):
-        binaryStack.append('01100' + '000' + immtoBinary(labelStack.get(label)))
+        binaryStack.append('01100' + '000' + immtoBinary(labelStack.get(label)[1]))
 
 def greaterJmp(addr):
     if(!checkLabel(label)):
-        binaryStack.append('01101' + '000' + immtoBinary(labelStack.get(label)))
+        binaryStack.append('01101' + '000' + immtoBinary(labelStack.get(label)[1]))
 
 def equalJmp(addr):
     if(!checkLabel(label)):
-        binaryStack.append('01111' + '000' + immtoBinary(labelStack.get(label)))
+        binaryStack.append('01111' + '000' + immtoBinary(labelStack.get(label)[1]))
 
 def hlt():
     if(pc != len(program)):
-        errorstack.append('halt command not the last command')
+        errorstack.append('halt command not the last command, line : ' + pc)
     else:
         binaryStack.append('01010' + '00000000000')
 
 
 
 
-
+main()
 
