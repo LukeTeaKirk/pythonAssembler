@@ -2,7 +2,8 @@ pc = 0
 notvar = 0
 variableStack = {} 
 labelStack = {}
-registerStack = []
+registerStack = [0,0,0,0,0,0]
+flagsStack = [0,0,0,0] #EGLV,0123
 binaryStack = []
 errorStack = []
 
@@ -28,11 +29,20 @@ def takeInput():
     listy = data.split("\n")
     return listy
 
+def decodeLine():
 
 def var(name):
-    if(notvar == 1){
-        errorstack.append("Variables not declared at the beginning")
-    }
+    if(notvar == 1):
+        errorstack.append("Variables not declared at the beginning, Line: " + pc)
+        return
+    if(name in variableStack):
+        errorstack.append("Variables already declared")
+        return
+    if(name in labelStack):
+        errorstack.append("Variable name already declared as label")
+        return
+
+    variableStack[name] = null
 def add(r1,r2,r3):
     
 def sub(r1,r2,r3):
