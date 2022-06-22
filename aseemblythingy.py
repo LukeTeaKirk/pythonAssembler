@@ -7,10 +7,10 @@ registerStack = [0,0,0,0,0,0]
 flagsStack = [0,0,0,0] #EGLV,0123
 binaryStack = []
 errorStack = []
-
+program = []
 def main():
-    commands = takeInput()
-    for x in listy:
+    program = takeInput()
+    for x in program:
         if(len(x) == 0):
             pc = pc + 1
         else:
@@ -21,8 +21,49 @@ def main():
                 var()
             if(commands[0] == 'add'):
                 add(commands[1], commands[2], commands[3])
-            if(commands[0] == )
-
+            if(commands[0] == 'sub'):
+                sub(commands[1], commands[2], commands[3])
+            if(commands[0] == 'mov'):
+                if(checkWholeRange(commands[2])):
+                    movI(commands[1], commands[2])
+                else:
+                    movR(commands[1], commands[2])
+            if(commands[0] == 'ld'):
+                load(commands[1], commands[2])
+            if(commands[0] == 'st'):
+                str(commands[1], commands[2])
+            if(commands[0] == 'mul'):
+                mul(commands[1], commands[2], commands[3])
+            if(commands[0] == 'div'):
+                div(commands[1], commands[2])
+            if(commands[0] == 'rs'):
+                rightS(commands[1], commands[2])
+            if(commands[0] == 'ls'):
+                leftS(commands[1], commands[2])
+            if(commands[0] == 'xor'):
+                exor(commands[1], commands[2], commands[3])
+            if(commands[0] == 'or'):
+                ore(commands[1], commands[2], commands[3])
+            if(commands[0] == 'and'):
+                andy(commands[1], commands[2], commands[3])
+            if(commands[0] == 'not'):
+                invert(commands[1], commands[2])
+            if(commands[0] == 'cmp'):
+                cmp(commands[1], commands[2])
+            if(commands[0] == 'jmp'):
+                unconJmp(commands[1])
+            if(commands[0] == 'jlt'):
+                lessJmp(commands[1])
+            if(commands[0] == 'jgt'):
+                greaterJmp(commands[1])
+            if(commands[0] == 'je'):
+                equalJmp(commands[1])
+            if(commands[0] == 'hlt'):
+                hlt()
+            else:
+                if(commands[0][-1] == ':'):
+                    label(commands[0])
+            pc = pc + 1
 
 
 def takeInput():
@@ -168,7 +209,7 @@ def lessJmp(addr):
     if(!checkLabel(label)):
         binaryStack.append('01100' + '000' + immtoBinary(labelStack.get(label)))
 
-def geaterJmp(addr):
+def greaterJmp(addr):
     if(!checkLabel(label)):
         binaryStack.append('01101' + '000' + immtoBinary(labelStack.get(label)))
 
@@ -177,7 +218,7 @@ def equalJmp(addr):
         binaryStack.append('01111' + '000' + immtoBinary(labelStack.get(label)))
 
 def hlt():
-    if(pc != len(commands)):
+    if(pc != len(program)):
         errorstack.append('halt command not the last command')
     else:
         binaryStack.append('01010' + '00000000000')
