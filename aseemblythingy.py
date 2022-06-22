@@ -58,6 +58,10 @@ def checkWholeRange(val):
 def checkVar(vari):
     if(vari not in variableStack):
         errorstack.append("variable is undefined " + vari)
+
+def checkLabel(addr):
+    if(addr not in variableStack):
+        errorstack.append("label is undefined " + addr)
 def immtoBinary(val):
     return format(val, '08b')
 def regtoBinary(r1):
@@ -152,16 +156,32 @@ def invert(r1,r2):
         binaryStack.append('10111' + '00000' + regtoBinary(r1) + regtoBinary(r2))
 
 def cmp(r1,r2):
+    if(!checkRegBounds(r1,r2,0)):
+        binaryStack.append('10111' + '00000' + regtoBinary(r1) + regtoBinary(r2))
 
-def unconJmp(addr):
+def unconJmp(label):
+    if(!checkLabel(label)):
+        binaryStack.append('11111' + '000' + immtoBinary(labelStack.get(label)))
+
 
 def lessJmp(addr):
+    if(!checkLabel(label)):
+        binaryStack.append('01100' + '000' + immtoBinary(labelStack.get(label)))
 
 def geaterJmp(addr):
+    if(!checkLabel(label)):
+        binaryStack.append('01101' + '000' + immtoBinary(labelStack.get(label)))
 
 def equalJmp(addr):
+    if(!checkLabel(label)):
+        binaryStack.append('01111' + '000' + immtoBinary(labelStack.get(label)))
 
 def hlt():
+    if(pc != len(commands)):
+        errorstack.append('halt command not the last command')
+    else:
+        binaryStack.append('01010' + '00000000000')
+
 
 
 
