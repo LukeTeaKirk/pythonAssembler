@@ -20,7 +20,7 @@ def main():
             if(commands[0] != "var"):
                 notvar = 1
             if(commands[0] == 'var'):
-                var()
+                var(commands[1])
             if(commands[0] == 'add'):
                 add(commands[1], commands[2], commands[3])
             if(commands[0] == 'sub'):
@@ -76,7 +76,7 @@ def main():
 
 
 def takeInput():
-    listy = ['mov R1 $10', 'hlt']
+    listy = ['var X','mov R1 $10', 'st R3 X','hlt']
     '''filey = open("input", "r")
     data = filey.read()
     listy = data.split("\n")'''
@@ -124,7 +124,10 @@ def checkLabel(addr):
         errorStack.append("label is undefined" + addr)
 
 def immtoBinary(val):
-    return '{0:08b}'.format(int(val[1:]))
+    try:
+        return '{0:08b}'.format(val)
+    except:
+        return '{0:08b}'.format(int(val[1:])) 
     
 def regtoBinary(r1):
     r1 = int(r1[1:])
@@ -144,6 +147,7 @@ def regtoBinary(r1):
         return '111'
 
 def var(name):
+    global varCounter, variableStack
     if(notvar == 1):
         errorStack.append("Variables not declared at the beginning, Line: " + pc)
         return
@@ -153,8 +157,8 @@ def var(name):
     if(name in labelStack):
         errorStack.append("Variable name already declared as label")
         return
-    variableStack[name] = varCounter
     varCounter = varCounter + 1
+    variableStack[name] = varCounter
 
 def label(name):
     if(name in labelStack):
@@ -178,32 +182,32 @@ def movI(r1, val):
         binaryStack.append('10010' + regtoBinary(r1) + immtoBinary(val))
 
 def movR(r1,r2):
-    if(not checkRegBounds(r1, r2, 0)):
+    if(not checkRegBounds(r1, r2, 'R0')):
         binaryStack.append('1001100000' + regtoBinary(r1) + regtoBinary(r2))
 
 def load(r1, vari):
-    if(not checkRegBounds(r1,0,0) or checkVar(vari)):
+    if(not checkRegBounds(r1,'R0','R0') or checkVar(vari)):
         binaryStack.append('10100' + regtoBinary(r1) + immtoBinary(variableStock.get(vari)))
 
 def str(r1, vari):
-    if(not checkRegBounds(r1,0,0) or checkVar(vari)):
-        binaryStack.append('10101' + regtoBinary(r1) + immtoBinary(variableStock.get(vari)))
+    if(not checkRegBounds(r1,'R0','R0') or checkVar(vari)):
+        binaryStack.append('10101' + regtoBinary(r1) + immtoBinary(variableStack.get(vari)))
 
 def mul(r1, r2, r3):
     if(not checkRegBounds(r1,r2,r3)):
         binaryStack.append('10110' + '00' + regtoBinary(r1) + regtoBinary(r2) + regtoBinary(r3))
 
 def div(r3, r4):
-    if(not checkRegBounds(r3,r4,0)):
+    if(not checkRegBounds(r3,r4,'R0')):
         binaryStack.append('10111' + '00000' + regtoBinary(r3) + regtoBinary(r4))
 
 def rightS(r1, val):
-    if(not checkRegBounds(r1,0,0) or not checkWholeRange(val)):
+    if(not checkRegBounds(r1,'R0','R0') or not checkWholeRange(val)):
         binaryStack.append('11000' + regtoBinary(r1) + immtoBinary(val))
 
 
 def leftS(r1, val):
-    if(not checkRegBounds(r1,0,0) or not checkWholeRange(val)):
+    if(not checkRegBounds(r1,'R0','R0') or not checkWholeRange(val)):
         binaryStack.append('11001' + regtoBinary(r1) + immtoBinary(val))
 
 def exor(r1,r2,r3):
@@ -221,11 +225,11 @@ def andy(r1,r2,r3):
         binaryStack.append('11100' + '00' + regtoBinary(r1) + regtoBinary(r2) + regtoBinary(r3))
 
 def invert(r1,r2):
-    if(not checkRegBounds(r1,r2,0)):
+    if(not checkRegBounds(r1,r2,'R0')):
         binaryStack.append('10111' + '00000' + regtoBinary(r1) + regtoBinary(r2))
 
 def cmp(r1,r2):
-    if(not checkRegBounds(r1,r2,0)):
+    if(not checkRegBounds(r1,r2,'R0')):
         binaryStack.append('10111' + '00000' + regtoBinary(r1) + regtoBinary(r2))
 
 def unconJmp(label):
