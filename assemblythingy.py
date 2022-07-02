@@ -16,20 +16,36 @@ def main():
         if(len(x) == 0):
             pc = pc + 1
         else:
+            commands = x.split(' ')
+            if(len(commands) > 4){
+                errorStack.append("Unexpected parameters in line number " + str(pc) + "\n" + "Line: " + x)
+            }
             try:
                 if(commands[0] != "var"):
                     notvar = 1
                 if(commands[0] == 'var'):
-                    var(commands[1])
-                if(commands[0] == 'add'):
-                    add(commands[1], commands[2], commands[3])
-                if(commands[0] == 'sub'):
-                    sub(commands[1], commands[2], commands[3])
-                if(commands[0] == 'mov'):
-                    if('$' in commands[2]):
-                        movI(commands[1], commands[2])
+                    if(len(commands) == 2):
+                        var(commands[1])
                     else:
-                        movR(commands[1], commands[2])
+                        errorStack.append("Unexpected parameters in line number " + str(pc) + "\n" + "Line: " + x)
+                if(commands[0] == 'add'):
+                    if(len(commands) == 4):
+                        add(commands[1], commands[2], commands[3])
+                    else:
+                        errorStack.append("Unexpected parameters in line number " + str(pc) + "\n" + "Line: " + x)
+                if(commands[0] == 'sub'):
+                    if(len(commands) == 4):
+                        sub(commands[1], commands[2], commands[3])
+                    else:
+                        errorStack.append("Unexpected parameters in line number " + str(pc) + "\n" + "Line: " + x)
+                if(commands[0] == 'mov'):
+                    if(len(commands) == 3):
+                        if('$' in commands[2]):
+                            movI(commands[1], commands[2])
+                        else:
+                            movR(commands[1], commands[2])
+                    else:
+                        errorStack.append("Unexpected parameters in line number " + str(pc) + "\n" + "Line: " + x)
                 if(commands[0] == 'ld'):
                     load(commands[1], commands[2])
                 if(commands[0] == 'st'):
@@ -67,10 +83,7 @@ def main():
                         label(commands[0][::-1])
             except:
                 errorStack.append("Syntax error in line number " + str(pc))
-            commands = x.split(' ')
-            if(len(commands) > 3){
-                errorStack.append("Unexpected parameters in line number " + str(pc))
-            }
+            
             pc = pc + 1
     if(len(errorStack)==0):
         for x in binaryStack:
@@ -82,7 +95,7 @@ def main():
 
 
 def takeInput():
-    listy = ['var X','mov R1 $10', 'st R3 X','hlt']
+    listy = ['var X a','mov R1 $10', 'st R3 X','hlt']
     '''filey = open("input", "r")
     data = filey.read()
     listy = data.split("\n")'''
@@ -259,8 +272,5 @@ def hlt():
         errorStack.append('halt command not the last command, line : ' + str(pc))
     else:
         binaryStack.append('01010' + '00000000000')
-
-
-
 
 main()
