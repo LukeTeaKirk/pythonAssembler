@@ -43,7 +43,10 @@ def main():
                         if('$' in commands[2]):
                             movI(commands[1], commands[2])
                         else:
-                            movR(commands[1], commands[2])
+                            if(commands[2] == 'FLAGS'): 
+                                movF(commands[1], commands[2])
+                            else:
+                                movR(commands[1], commands[2])
                     else:
                         errorStack.append("Unexpected parameters in line number " + str(pc) + "\n" + "Line: " + x)
                 if(commands[0] == 'ld'):
@@ -82,7 +85,7 @@ def main():
                     if(commands[0][-1] == ':'):
                         label(commands[0][::-1])
             except:
-                errorStack.append("Syntax error in line number " + str(pc))
+                errorStack.append("Syntax error in line number " + str(pc)+ "\n" + "Line: " + x)
             
             pc = pc + 1
     if(len(errorStack)==0):
@@ -104,18 +107,18 @@ def takeInput():
 def checkRegBounds(r1, r2, r3):
     flag = 0
     if(not(r1[0] == 'R' and r2[0] == 'R' and r3[0] == 'R')):
-        errorStack.append("Syntax error, register not input correctly")
+        errorStack.append("Syntax error, register not input correctly, Line Number: " + str(pc))
     r1 = int(r1[1:])
     r2 = int(r2[1:])
     r3 = int(r3[1:])
     if(r1 > 6 or r1 < 0):
-        errorStack.append("Register is undefined " + r1)
+        errorStack.append("Register is undefined R" + r1 + " Line Number: " + str(pc))
         flag = 1
     if(r2 > 6 or r2 < 0):
-        errorStack.append("Register is undefined " + r2)
+        errorStack.append("Register is undefined R" + r2 + " Line Number: " + str(pc))
         flag = 1
     if(r3 > 6 or r3 < 0):
-        errorStack.append("Register is undefined " + r3)
+        errorStack.append("Register is undefined R" + r3 + " Line Number: " + str(pc))
         flag = 1
     return flag
 
@@ -124,23 +127,23 @@ def checkWholeRange(val):
     flag = 0
     if(val>255 or val < 0):
         flag = 1
-        errorStack.append("lmm is out of range " + val)
+        errorStack.append("lmm is out of range " + val + " Line Number: " + str(pc))
     if(val - int(val) != 0):
-        errorStack.append("lmm is not a whole number " + val)
+        errorStack.append("lmm is not a whole number " + val + " Line Number: " + str(pc))
         flag = 1
     return flag
 
 def checkVar(vari):
     if(vari not in variableStack):
         if(label in labelStack):
-            errorStack.append("label is misused as a variable " + vari)
-        errorStack.append("variable is undefined " + vari)
+            errorStack.append("label is misused as a variable " + vari + " Line Number: " + str(pc))
+        errorStack.append("variable is undefined " + vari + " Line Number: " + str(pc))
 
 def checkLabel(addr):
     if(addr not in labelStack):
         if(addr in variableStack):
-            errorStack.append("variable is misused as a label " + addr)
-        errorStack.append("label is undefined" + addr)
+            errorStack.append("variable is misused as a label " + addr + " Line Number: " + str(pc))
+        errorStack.append("label is undefined" + addr + " Line Number: " + str(pc))
 
 def immtoBinary(val):
     try:
@@ -199,6 +202,10 @@ def sub(r1,r2,r3):
 def movI(r1, val):
     if(not checkRegBounds(r1, 'R0', 'R0') and not checkWholeRange(val)):
         binaryStack.append('10010' + regtoBinary(r1) + immtoBinary(val))
+
+def movF(r1,r2):
+    if(not checkRegBounds(r1, 'R0', 'R0')):
+        binaryStack.append('1001100000' + regtoBinary(r1) + regtoBinary(r2))
 
 def movR(r1,r2):
     if(not checkRegBounds(r1, r2, 'R0')):
