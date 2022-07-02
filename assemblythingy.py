@@ -16,55 +16,61 @@ def main():
         if(len(x) == 0):
             pc = pc + 1
         else:
-            commands = x.split(' ')
-            if(commands[0] != "var"):
-                notvar = 1
-            if(commands[0] == 'var'):
-                var(commands[1])
-            if(commands[0] == 'add'):
-                add(commands[1], commands[2], commands[3])
-            if(commands[0] == 'sub'):
-                sub(commands[1], commands[2], commands[3])
-            if(commands[0] == 'mov'):
-                if('$' in commands[2]):
-                    movI(commands[1], commands[2])
+            try:
+                if(commands[0] != "var"):
+                    notvar = 1
+                if(commands[0] == 'var'):
+                    var(commands[1])
+                if(commands[0] == 'add'):
+                    add(commands[1], commands[2], commands[3])
+                if(commands[0] == 'sub'):
+                    sub(commands[1], commands[2], commands[3])
+                if(commands[0] == 'mov'):
+                    if('$' in commands[2]):
+                        movI(commands[1], commands[2])
+                    else:
+                        movR(commands[1], commands[2])
+                if(commands[0] == 'ld'):
+                    load(commands[1], commands[2])
+                if(commands[0] == 'st'):
+                    str(commands[1], commands[2])
+                if(commands[0] == 'mul'):
+                    mul(commands[1], commands[2], commands[3])
+                if(commands[0] == 'div'):
+                    div(commands[1], commands[2])
+                if(commands[0] == 'rs'):
+                    rightS(commands[1], commands[2])
+                if(commands[0] == 'ls'):
+                    leftS(commands[1], commands[2])
+                if(commands[0] == 'xor'):
+                    exor(commands[1], commands[2], commands[3])
+                if(commands[0] == 'or'):
+                    ore(commands[1], commands[2], commands[3])
+                if(commands[0] == 'and'):
+                    andy(commands[1], commands[2], commands[3])
+                if(commands[0] == 'not'):
+                    invert(commands[1], commands[2])
+                if(commands[0] == 'cmp'):
+                    cmp(commands[1], commands[2])
+                if(commands[0] == 'jmp'):
+                    unconJmp(commands[1])
+                if(commands[0] == 'jlt'):
+                    lessJmp(commands[1])
+                if(commands[0] == 'jgt'):
+                    greaterJmp(commands[1])
+                if(commands[0] == 'je'):
+                    equalJmp(commands[1])
+                if(commands[0] == 'hlt'):
+                    hlt()
                 else:
-                    movR(commands[1], commands[2])
-            if(commands[0] == 'ld'):
-                load(commands[1], commands[2])
-            if(commands[0] == 'st'):
-                str(commands[1], commands[2])
-            if(commands[0] == 'mul'):
-                mul(commands[1], commands[2], commands[3])
-            if(commands[0] == 'div'):
-                div(commands[1], commands[2])
-            if(commands[0] == 'rs'):
-                rightS(commands[1], commands[2])
-            if(commands[0] == 'ls'):
-                leftS(commands[1], commands[2])
-            if(commands[0] == 'xor'):
-                exor(commands[1], commands[2], commands[3])
-            if(commands[0] == 'or'):
-                ore(commands[1], commands[2], commands[3])
-            if(commands[0] == 'and'):
-                andy(commands[1], commands[2], commands[3])
-            if(commands[0] == 'not'):
-                invert(commands[1], commands[2])
-            if(commands[0] == 'cmp'):
-                cmp(commands[1], commands[2])
-            if(commands[0] == 'jmp'):
-                unconJmp(commands[1])
-            if(commands[0] == 'jlt'):
-                lessJmp(commands[1])
-            if(commands[0] == 'jgt'):
-                greaterJmp(commands[1])
-            if(commands[0] == 'je'):
-                equalJmp(commands[1])
-            if(commands[0] == 'hlt'):
-                hlt()
-            else:
-                if(commands[0][-1] == ':'):
-                    label(commands[0][::-1])
+                    if(commands[0][-1] == ':'):
+                        label(commands[0][::-1])
+            except:
+                errorStack.append("Syntax error in line number " + str(pc))
+            commands = x.split(' ')
+            if(len(commands) > 3){
+                errorStack.append("Unexpected parameters in line number " + str(pc))
+            }
             pc = pc + 1
     if(len(errorStack)==0):
         for x in binaryStack:
