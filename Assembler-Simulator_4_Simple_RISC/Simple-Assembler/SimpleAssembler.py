@@ -24,7 +24,7 @@ def main():
             
             try:
                 left = []
-                if(commands[0][-1] == ':':
+                if(commands[0][-1]) == ':':
                     label(commands[0][:-1])
                     commands = commands[1:]
                 if(commands[0] != "var"):
@@ -112,6 +112,7 @@ def main():
                     errorStack.append("Unrecognized commands in line number: " + programCounter.__str__()+ "\n" + "Line: " + x)
                 if(len(left) != 0):
                     errorStack.append("Unexpected parameters in line number: " + programCounter.__str__()+ "\n" + "Line: " + x)
+
             except IndexError:
                 errorStack.append("Expected more parameters in line number:  " + programCounter.__str__()+ "\n" + "Line: " + x)
             except Exception as e:
