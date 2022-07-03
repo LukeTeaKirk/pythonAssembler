@@ -23,7 +23,8 @@ def main():
                 errorStack.append("Unexpected parameters in line number " + programCounter.__str__() + "\n" + "Line: " + x)
             
             try:
-                if(commands[0][-1] == ':'):
+                left = []
+                if(commands[0][-1] == ':':
                     label(commands[0][:-1])
                     commands = commands[1:]
                 if(commands[0] != "var"):
@@ -31,63 +32,86 @@ def main():
                 if(commands[0] == 'var'):
                     if(len(commands) == 2):
                         var(commands[1])
+                        left = commands[2:]
                     else:
                         errorStack.append("Unexpected parameters in line number " + programCounter.__str__() + "\n" + "Line: " + x)
                 if(commands[0] == 'add'):
                     if(len(commands) == 4):
                         add(commands[1], commands[2], commands[3])
+                        left = commands[4:]
                     else:
                         errorStack.append("Unexpected parameters in line number " + programCounter.__str__() + "\n" + "Line: " + x)
                 if(commands[0] == 'sub'):
                     if(len(commands) == 4):
                         sub(commands[1], commands[2], commands[3])
+                        left = commands[4:]
                     else:
                         errorStack.append("Unexpected parameters in line number " + programCounter.__str__() + "\n" + "Line: " + x)
                 if(commands[0] == 'mov'):
                     if(len(commands) == 3):
                         if('$' in commands[2]):
                             movI(commands[1], commands[2])
+                            left = commands[3:]
                         else:
                             if(commands[2] == 'FLAGS'): 
                                 movF(commands[1], commands[2])
+                                left = commands[3:]
                             else:
                                 movR(commands[1], commands[2])
+                                left = commands[3:]
                     else:
                         errorStack.append("Unexpected parameters in line number " + programCounter.__str__() + "\n" + "Line: " + x)
                 if(commands[0] == 'ld'):
                     load(commands[1], commands[2])
+                    left = commands[3:]
                 if(commands[0] == 'st'):
                     str(commands[1], commands[2])
+                    left = commands[3:]
                 if(commands[0] == 'mul'):
                     mul(commands[1], commands[2], commands[3])
+                    left = commands[4:]
                 if(commands[0] == 'div'):
                     div(commands[1], commands[2])
+                    left = commands[3:]
                 if(commands[0] == 'rs'):
                     rightS(commands[1], commands[2])
+                    left = commands[3:]
                 if(commands[0] == 'ls'):
                     leftS(commands[1], commands[2])
+                    left = commands[3:]
                 if(commands[0] == 'xor'):
                     exor(commands[1], commands[2], commands[3])
+                    left = commands[4:]
                 if(commands[0] == 'or'):
                     ore(commands[1], commands[2], commands[3])
+                    left = commands[4:]
                 if(commands[0] == 'and'):
                     andy(commands[1], commands[2], commands[3])
+                    left = commands[4:]
                 if(commands[0] == 'not'):
                     invert(commands[1], commands[2])
+                    left = commands[3:]
                 if(commands[0] == 'cmp'):
                     cmp(commands[1], commands[2])
+                    left = commands[3:]
                 if(commands[0] == 'jmp'):
                     unconJmp(commands[1])
+                    left = commands[2:]
                 if(commands[0] == 'jlt'):
                     lessJmp(commands[1])
+                    left = commands[2:]
                 if(commands[0] == 'jgt'):
                     greaterJmp(commands[1])
+                    left = commands[2:]
                 if(commands[0] == 'je'):
                     equalJmp(commands[1])
+                    left = commands[2:]
                 if(commands[0] == 'hlt'):
                     hlt()   
                 if(commands[0] not in isa):
-                    errorStack.append("Unrecognized commands in line number: " + programCounter.__str__()+ "\n" + "Line: " + x)    
+                    errorStack.append("Unrecognized commands in line number: " + programCounter.__str__()+ "\n" + "Line: " + x)
+                if(len(left) != 0):
+                    errorStack.append("Unexpected parameters in line number: " + programCounter.__str__()+ "\n" + "Line: " + x)
             except IndexError:
                 errorStack.append("Expected more parameters in line number:  " + programCounter.__str__()+ "\n" + "Line: " + x)
             except Exception as e:
