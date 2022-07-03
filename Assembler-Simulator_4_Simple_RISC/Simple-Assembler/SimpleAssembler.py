@@ -91,8 +91,6 @@ def main():
             except IndexError:
                 errorStack.append("Expected more parameters in line number:  " + programCounter.__str__()+ "\n" + "Line: " + x)
             except Exception as e:
-                print(e)
-                print(x)
                 errorStack.append("Syntax error in line number " + programCounter.__str__()+ "\n" + "Line: " + x)
             
             programCounter = programCounter + 1
