@@ -109,7 +109,6 @@ def main():
 def takeInput():
     listy = sys.stdin.read().split("\n")
     listy = list(filter(None, listy))
-    print(listy)
     return listy
 
 def checkRegBounds(r1, r2, r3):
