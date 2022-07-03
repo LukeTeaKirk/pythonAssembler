@@ -18,7 +18,7 @@ def main():
         if(len(x) == 0):
             programCounter = programCounter + 1
         else:
-            commands = x.split(' ')
+            commands = x.split()
             if(len(commands) > 5):
                 errorStack.append("Unexpected parameters in line number " + programCounter.__str__() + "\n" + "Line: " + x)
             
@@ -91,6 +91,8 @@ def main():
             except IndexError:
                 errorStack.append("Expected more parameters in line number:  " + programCounter.__str__()+ "\n" + "Line: " + x)
             except Exception as e:
+                print(e)
+                print(x)
                 errorStack.append("Syntax error in line number " + programCounter.__str__()+ "\n" + "Line: " + x)
             
             programCounter = programCounter + 1
@@ -108,27 +110,26 @@ def takeInput():
     listy = sys.stdin.read().split("\n")
     listy = list(filter(None, listy))
     print(listy)
-    '''filey = open("input", "r")
-    data = filey.read()
-    listy = data.split("\n")'''
     return listy
 
 def checkRegBounds(r1, r2, r3):
     flag = 0
     if(not(r1[0] == 'R' and r2[0] == 'R' and r3[0] == 'R')):
-        errorStack.append("Syntax error, register not input correctly, Line Number: " + programCounter.__str__() + "\n" + "Line: " + program[programCounter])
-    r1 = int(r1[1:])
-    r2 = int(r2[1:])
-    r3 = int(r3[1:])
-    if(r1 > 6 or r1 < 0):
-        errorStack.append("Register is undefined R" + r1 + " Line Number: " + programCounter.__str__() + "\n" + "Line: " + program[programCounter])
+        errorStack.append("Syntax error, invalid registers, Line Number: " + programCounter.__str__() + "\n" + "Line: " + program[programCounter])
         flag = 1
-    if(r2 > 6 or r2 < 0):
-        errorStack.append("Register is undefined R" + r2 + " Line Number: " + programCounter.__str__() + "\n" + "Line: " + program[programCounter])
-        flag = 1
-    if(r3 > 6 or r3 < 0):
-        errorStack.append("Register is undefined R" + r3 + " Line Number: " + programCounter.__str__() + "\n" + "Line: " + program[programCounter])
-        flag = 1
+    else:
+        r1 = int(r1[1:])
+        r2 = int(r2[1:])
+        r3 = int(r3[1:])
+        if(r1 > 6 or r1 < 0):
+            errorStack.append("Register is undefined R" + r1 + " Line Number: " + programCounter.__str__() + "\n" + "Line: " + program[programCounter])
+            flag = 1
+        if(r2 > 6 or r2 < 0):
+            errorStack.append("Register is undefined R" + r2 + " Line Number: " + programCounter.__str__() + "\n" + "Line: " + program[programCounter])
+            flag = 1
+        if(r3 > 6 or r3 < 0):
+            errorStack.append("Register is undefined R" + r3 + " Line Number: " + programCounter.__str__() + "\n" + "Line: " + program[programCounter])
+            flag = 1
     return flag
 
 def checkWholeRange(val):
@@ -143,16 +144,26 @@ def checkWholeRange(val):
     return flag
 
 def checkVar(variz):
+    flag = 0
     if(variz not in variableStack):
-        if(label in labelStack):
+        if(variz in labelStack):
+            flag = 1
             errorStack.append("label is misused as a variable " + variz + " Line Number: " + programCounter.__str__() + "\n" + "Line: " + program[programCounter])
-        errorStack.append("variable is undefined " + variz + " Line Number: " + programCounter.__str__() + "\n" + "Line: " + program[programCounter])
+        else:
+            errorStack.append("variable is undefined " + variz + " Line Number: " + programCounter.__str__() + "\n" + "Line: " + program[programCounter])
+            flag = 1
+    return flag
 
 def checkLabel(addr):
+    flag = 0
     if(addr not in labelStack):
         if(addr in variableStack):
+            flag = 1
             errorStack.append("variable is misused as a label " + addr + " Line Number: " + programCounter.__str__() + "\n" + "Line: " + program[programCounter])
-        errorStack.append("label is undefined" + addr + " Line Number: " + programCounter.__str__())
+        else:
+            errorStack.append("label is undefined " + addr + " Line Number: " + programCounter.__str__() + "\n" + "Line: " + program[programCounter])
+        flag = 1
+    return flag
 
 def immtoBinary(val):
     try:
@@ -210,7 +221,8 @@ def sub(r1,r2,r3):
         binaryStack.append('10001' + '00' + regtoBinary(r1) + regtoBinary(r2) + regtoBinary(r3))
 
 def movI(r1, val):
-    if(not checkRegBounds(r1, 'R0', 'R0') and not checkWholeRange(val)):
+    b = checkWholeRange(val)
+    if(not checkRegBounds(r1, 'R0', 'R0') and not b):
         binaryStack.append('10010' + regtoBinary(r1) + immtoBinary(val))
 
 def movF(r1,r2):
@@ -222,11 +234,15 @@ def movR(r1,r2):
         binaryStack.append('1001100000' + regtoBinary(r1) + regtoBinary(r2))
 
 def load(r1, vari):
-    if(not checkRegBounds(r1,'R0','R0') or checkVar(vari)):
-        binaryStack.append('10100' + regtoBinary(r1) + immtoBinary(variableStock.get(vari)))
+    a = checkRegBounds(r1,'R0','R0')
+    b = checkVar(vari)
+    if(not a and not b):
+        binaryStack.append('10100' + regtoBinary(r1) + immtoBinary(variableStack.get(vari)))
 
 def str(r1, vari):
-    if(not checkRegBounds(r1,'R0','R0') or checkVar(vari)):
+    a = checkRegBounds(r1,'R0','R0')
+    b = checkVar(vari)
+    if(not a and not b):
         binaryStack.append('10101' + regtoBinary(r1) + immtoBinary(variableStack.get(vari)))
 
 def mul(r1, r2, r3):
@@ -238,12 +254,15 @@ def div(r3, r4):
         binaryStack.append('10111' + '00000' + regtoBinary(r3) + regtoBinary(r4))
 
 def rightS(r1, val):
-    if(not checkRegBounds(r1,'R0','R0') or not checkWholeRange(val)):
+    a = checkRegBounds(r1,'R0','R0')
+    b = checkWholeRange(val)
+    if(not checkRegBounds(r1,'R0','R0') and not b):
         binaryStack.append('11000' + regtoBinary(r1) + immtoBinary(val))
 
 
 def leftS(r1, val):
-    if(not checkRegBounds(r1,'R0','R0') or not checkWholeRange(val)):
+    b = checkWholeRange(val)
+    if(not checkRegBounds(r1,'R0','R0') and not b):
         binaryStack.append('11001' + regtoBinary(r1) + immtoBinary(val))
 
 def exor(r1,r2,r3):
@@ -273,15 +292,15 @@ def unconJmp(label):
         binaryStack.append('11111' + '000' + immtoBinary(labelStack.get(label)[1]))
 
 def lessJmp(addr):
-    if(not checkLabel(label)):
+    if(not checkLabel(addr)):
         binaryStack.append('01100' + '000' + immtoBinary(labelStack.get(label)[1]))
 
 def greaterJmp(addr):
-    if(not checkLabel(label)):
+    if(not checkLabel(addr)):
         binaryStack.append('01101' + '000' + immtoBinary(labelStack.get(label)[1]))
 
 def equalJmp(addr):
-    if(not checkLabel(label)):
+    if(not checkLabel(addr)):
         binaryStack.append('01111' + '000' + immtoBinary(labelStack.get(label)[1]))
 
 def hlt():
