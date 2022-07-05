@@ -14,39 +14,48 @@ isa = ['var', 'add', 'sub', 'mov', 'ld', 'st', 'mul', 'div', 'rs', 'ls', 'xor', 
 def main():
     global program, programCounter, notvar, variableStack, varCounter, labelStack, registerStack, flagsStack, binaryStack, errorStack, program
     program = takeInput()
+    varCounter = len(program)
     for x in program:
         if(len(x) == 0):
             programCounter = programCounter + 1
         else:
             commands = x.split()
             if(len(commands) > 5):
-                errorStack.append("Unexpected parameters in line number " + programCounter.__str__() + "\n" + "Line: " + x)
-            
+                errorStack.append("Unexpected parameters in line number " + (programCounter + 1).__str__() + "\n" + "Line: " + x)
             try:
                 left = []
-                if(commands[0][-1]) == ':':
+                if('FLAGS' in commands):
+                    if(len(commands) == 3 and commands[-1] == 'FLAGS' and 'mov' == commands[0]):
+                        pass
+                    else:                
+                        errorStack.append("Invalid usage of Flags register in line number " + (programCounter + 1).__str__() + "\n" + "Line: " + x)
+
+                if(commands[0][-1] == ':'):
                     label(commands[0][:-1])
                     commands = commands[1:]
                 if(commands[0] != "var"):
+                    if(notvar == 0):
+                        for x in variableStack:
+                            variableStack[x] = variableStack[x] - len(variableStack)
                     notvar = 1
                 if(commands[0] == 'var'):
                     if(len(commands) == 2):
                         var(commands[1])
                         left = commands[2:]
                     else:
-                        errorStack.append("Unexpected parameters in line number " + programCounter.__str__() + "\n" + "Line: " + x)
+                        errorStack.append("Unexpected parameters in line number " + (programCounter + 1).__str__() + "\n" + "Line: " + x)
                 if(commands[0] == 'add'):
                     if(len(commands) == 4):
                         add(commands[1], commands[2], commands[3])
                         left = commands[4:]
                     else:
-                        errorStack.append("Unexpected parameters in line number " + programCounter.__str__() + "\n" + "Line: " + x)
+                        errorStack.append("Unexpected parameters in line number " + (programCounter + 1).__str__() + "\n" + "Line: " + x)
                 if(commands[0] == 'sub'):
                     if(len(commands) == 4):
                         sub(commands[1], commands[2], commands[3])
                         left = commands[4:]
                     else:
-                        errorStack.append("Unexpected parameters in line number " + programCounter.__str__() + "\n" + "Line: " + x)
+                        errorStack.append("Unexpected parameters in line number " + (programCounter + 1).__str__() + "\n" + "Line: " + x)
                 if(commands[0] == 'mov'):
                     if(len(commands) == 3):
                         if('$' in commands[2]):
@@ -56,11 +65,11 @@ def main():
                             if(commands[2] == 'FLAGS'): 
                                 movF(commands[1], commands[2])
                                 left = commands[3:]
-                            else:
+                            elif('FLAGS' not in commands):
                                 movR(commands[1], commands[2])
                                 left = commands[3:]
                     else:
-                        errorStack.append("Unexpected parameters in line number " + programCounter.__str__() + "\n" + "Line: " + x)
+                        errorStack.append("Unexpected parameters in line number " + (programCounter + 1).__str__() + "\n" + "Line: " + x)
                 if(commands[0] == 'ld'):
                     load(commands[1], commands[2])
                     left = commands[3:]
@@ -109,15 +118,14 @@ def main():
                 if(commands[0] == 'hlt'):
                     hlt()   
                 if(commands[0] not in isa):
-                    errorStack.append("Unrecognized commands in line number: " + programCounter.__str__()+ "\n" + "Line: " + x)
+                    errorStack.append("Unrecognized commands in line number: " + (programCounter + 1).__str__()+ "\n" + "Line: " + x)
                 if(len(left) != 0):
-                    errorStack.append("Unexpected parameters in line number: " + programCounter.__str__()+ "\n" + "Line: " + x)
+                    errorStack.append("Unexpected parameters in line number: " + (programCounter + 1).__str__()+ "\n" + "Line: " + x)
 
             except IndexError:
-                errorStack.append("Expected more parameters in line number:  " + programCounter.__str__()+ "\n" + "Line: " + x)
+                errorStack.append("Expected more parameters in line number:  " + (programCounter + 1).__str__()+ "\n" + "Line: " + x)
             except Exception as e:
-                errorStack.append("Syntax error in line number " + programCounter.__str__()+ "\n" + "Line: " + x)
-            
+                errorStack.append("General Syntax error in line number " + (programCounter + 1).__str__()+ "\n" + "Line: " + x)
             programCounter = programCounter + 1
     if(len(errorStack)==0):
         for x in binaryStack[:256]:
@@ -136,21 +144,21 @@ def takeInput():
 
 def checkRegBounds(r1, r2, r3):
     flag = 0
-    if(not(r1[0] == 'R' and r2[0] == 'R' and r3[0] == 'R')):
-        errorStack.append("Syntax error, invalid registers, Line Number: " + programCounter.__str__() + "\n" + "Line: " + program[programCounter])
+    if(not(r1[0] == 'R' and (r2[0] == 'R' or r2 == 'FLAGS') and r3[0] == 'R')):
+        errorStack.append("Syntax error, invalid registers, Line Number: " + (programCounter + 1).__str__() + "\n" + "Line: " + program[programCounter])
         flag = 1
     else:
         r1 = int(r1[1:])
         r2 = int(r2[1:])
         r3 = int(r3[1:])
         if(r1 > 6 or r1 < 0):
-            errorStack.append("Register is undefined R" + r1 + " Line Number: " + programCounter.__str__() + "\n" + "Line: " + program[programCounter])
+            errorStack.append("Register is undefined R" + r1 + " Line Number: " + (programCounter + 1).__str__() + "\n" + "Line: " + program[programCounter])
             flag = 1
         if(r2 > 6 or r2 < 0):
-            errorStack.append("Register is undefined R" + r2 + " Line Number: " + programCounter.__str__() + "\n" + "Line: " + program[programCounter])
+            errorStack.append("Register is undefined R" + r2 + " Line Number: " + (programCounter + 1).__str__() + "\n" + "Line: " + program[programCounter])
             flag = 1
         if(r3 > 6 or r3 < 0):
-            errorStack.append("Register is undefined R" + r3 + " Line Number: " + programCounter.__str__() + "\n" + "Line: " + program[programCounter])
+            errorStack.append("Register is undefined R" + r3 + " Line Number: " + (programCounter + 1).__str__() + "\n" + "Line: " + program[programCounter])
             flag = 1
     return flag
 
@@ -159,9 +167,9 @@ def checkWholeRange(val):
     flag = 0
     if(val>255 or val < 0):
         flag = 1
-        errorStack.append("lmm is out of range " + val + " Line Number: " + programCounter.__str__() + "\n" + "Line: " + program[programCounter])
+        errorStack.append("lmm is out of range " + val + " Line Number: " + (programCounter + 1).__str__() + "\n" + "Line: " + program[programCounter])
     if(val - int(val) != 0):
-        errorStack.append("lmm is not a whole number " + val + " Line Number: " + programCounter.__str__() + "\n" + "Line: " + program[programCounter])
+        errorStack.append("lmm is not a whole number " + val + " Line Number: " + (programCounter + 1).__str__() + "\n" + "Line: " + program[programCounter])
         flag = 1
     return flag
 
@@ -170,9 +178,9 @@ def checkVar(variz):
     if(variz not in variableStack):
         if(variz in labelStack):
             flag = 1
-            errorStack.append("label is misused as a variable " + variz + " Line Number: " + programCounter.__str__() + "\n" + "Line: " + program[programCounter])
+            errorStack.append("label is misused as a variable " + variz + " Line Number: " + (programCounter + 1).__str__() + "\n" + "Line: " + program[programCounter])
         else:
-            errorStack.append("variable is undefined " + variz + " Line Number: " + programCounter.__str__() + "\n" + "Line: " + program[programCounter])
+            errorStack.append("variable is undefined " + variz + " Line Number: " + (programCounter + 1).__str__() + "\n" + "Line: " + program[programCounter])
             flag = 1
     return flag
 
@@ -181,9 +189,9 @@ def checkLabel(addr):
     if(addr not in labelStack):
         if(addr in variableStack):
             flag = 1
-            errorStack.append("variable is misused as a label " + addr + " Line Number: " + programCounter.__str__() + "\n" + "Line: " + program[programCounter])
+            errorStack.append("variable is misused as a label " + addr + " Line Number: " + (programCounter + 1).__str__() + "\n" + "Line: " + program[programCounter])
         else:
-            errorStack.append("label is undefined " + addr + " Line Number: " + programCounter.__str__() + "\n" + "Line: " + program[programCounter])
+            errorStack.append("label is undefined " + addr + " Line Number: " + (programCounter + 1).__str__() + "\n" + "Line: " + program[programCounter])
         flag = 1
     return flag
 
@@ -213,13 +221,13 @@ def regtoBinary(r1):
 def var(name):
     global varCounter, variableStack
     if(notvar == 1):
-        errorStack.append("Variables not declared at the beginning, Line Number: " + programCounter.__str__() + "\n" + "Line: " + program[programCounter])
+        errorStack.append("Variables not declared at the beginning, Line Number: " + (programCounter + 1).__str__() + "\n" + "Line: " + program[programCounter])
         return
     if(name in variableStack):
-        errorStack.append("Variables already declared, Line Number: " + programCounter.__str__() + "\n" + "Line: " + program[programCounter])
+        errorStack.append("Variables already declared, Line Number: " + (programCounter + 1).__str__() + "\n" + "Line: " + program[programCounter])
         return
     if(name in labelStack):
-        errorStack.append("Variable name already declared as label, Line Number: " + programCounter.__str__() + "\n" + "Line: " + program[programCounter])
+        errorStack.append("Variable name already declared as label, Line Number: " + (programCounter + 1).__str__() + "\n" + "Line: " + program[programCounter])
         return
     varCounter = varCounter + 1
     variableStack[name] = varCounter
@@ -227,10 +235,12 @@ def var(name):
 def label(name):
     global varCounter, labelStack
     if(name in labelStack):
-        errorStack.append("Label already declared: " + name + " Line Number: " + programCounter.__str__() + "\n" + "Line: " + program[programCounter])
+        errorStack.append("Label already declared: " + name + " Line Number: " + (programCounter + 1).__str__() + "\n" + "Line: " + program[programCounter])
         return
-    labelStack[name] = [programCounter, varCounter]
-    varCounter = varCounter + 1
+    if(' ' in name):
+        errorStack.append("Label contains space before ':' " + name + " Line Number: " + (programCounter + 1).__str__() + "\n" + "Line: " + program[programCounter])
+        return
+    labelStack[name] = [programCounter]
 
 
 
@@ -248,8 +258,8 @@ def movI(r1, val):
         binaryStack.append('10010' + regtoBinary(r1) + immtoBinary(val))
 
 def movF(r1,r2):
-    if(not checkRegBounds(r1, 'R0', 'R0')):
-        binaryStack.append('1001100000' + regtoBinary(r1) + regtoBinary(r2))
+    if(not checkRegBounds(r1, 'R0', 'R0') and r2 == 'FLAGS'):
+        binaryStack.append('1001100000' + regtoBinary(r1) + '111')
 
 def movR(r1,r2):
     if(not checkRegBounds(r1, r2, 'R0')):
@@ -311,23 +321,23 @@ def cmp(r1,r2):
 
 def unconJmp(label):
     if(not checkLabel(label)):
-        binaryStack.append('11111' + '000' + immtoBinary(labelStack.get(label)[1]))
+        binaryStack.append('11111' + '000' + immtoBinary(labelStack.get(label)[0]))
 
 def lessJmp(addr):
     if(not checkLabel(addr)):
-        binaryStack.append('01100' + '000' + immtoBinary(labelStack.get(label)[1]))
+        binaryStack.append('01100' + '000' + immtoBinary(labelStack.get(label)[0]))
 
 def greaterJmp(addr):
     if(not checkLabel(addr)):
-        binaryStack.append('01101' + '000' + immtoBinary(labelStack.get(label)[1]))
+        binaryStack.append('01101' + '000' + immtoBinary(labelStack.get(label)[0]))
 
 def equalJmp(addr):
     if(not checkLabel(addr)):
-        binaryStack.append('01111' + '000' + immtoBinary(labelStack.get(label)[1]))
+        binaryStack.append('01111' + '000' + immtoBinary(labelStack.get(label)[0]))
 
 def hlt():
     if(programCounter != len(program) - 1):
-        errorStack.append('halt command not the last command, line Number: ' + programCounter.__str__() + "\n" + "Line: " + program[programCounter])
+        errorStack.append('halt command not the last command, line Number: ' + (programCounter + 1).__str__() + "\n" + "Line: " + program[programCounter])
     else:
         binaryStack.append('01010' + '00000000000')
 
