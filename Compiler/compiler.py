@@ -95,92 +95,148 @@ def sub(instruction):
 	programCounter = programCounter + 1
 
 def movI(instruction):
-	
+	r1 = binaryToInteger(instruction[0:3])
+	imm = binaryToInteger(instruction[4:12])
+	global RF
+	RF[r1] = imm
+	programCounter = programCounter + 1;
+
+
 
 def movF(instruction):
     if(not checkRegBounds(r1, 'R0', 'R0') and r2 == 'FLAGS'):
         binaryStack.append('1001100000' + regtoBinary(r1) + '111')
 
 def movR(instruction):
-    if(not checkRegBounds(r1, r2, 'R0')):
-        binaryStack.append('1001100000' + regtoBinary(r1) + regtoBinary(r2))
+	r1 = binaryToInteger(instruction[6:9])
+	r2 = binaryToInteger(instruction[10:13])
+	global RF
+	RF[r2] = RF[r1]
+	programCounter = programCounter + 1
 
-def load(r1, vari):
-    a = checkRegBounds(r1,'R0','R0')
-    b = checkVar(vari)
-    if(not a and not b):
-        binaryStack.append('10100' + regtoBinary(r1) + immtoBinary(variableStack.get(vari)))
+def load(instruction):
+	r1 = binaryToInteger(instruction[0:3])
+	addr = binaryToInteger(instruction[4:12])
+	global MEM, RF
+	RF[r1] = MEM[addr]
+	programCounter = programCounter + 1
 
-def str(r1, vari):
-    a = checkRegBounds(r1,'R0','R0')
-    b = checkVar(vari)
-    if(not a and not b):
-        binaryStack.append('10101' + regtoBinary(r1) + immtoBinary(variableStack.get(vari)))
+def str(instruction):
+	r1 = binaryToInteger(instruction[0:3])
+	addr = binaryToInteger(instruction[4:12])
+	global MEM, RF
+	MEM[addr] = RF[r1] 
+	programCounter = programCounter + 1
 
-def mul(r1, r2, r3):
-    if(not checkRegBounds(r1,r2,r3)):
-        binaryStack.append('10110' + '00' + regtoBinary(r1) + regtoBinary(r2) + regtoBinary(r3))
+def mul(instruction):
+	r1 = binaryToInteger(instruction[2:5])
+	r2 = binaryToInteger(instruction[6:9])
+	r3 = binaryToInteger(instruction[10:13])
+	global RF
+	x = RF[r2] * RF[r1]
+	if(x > 2^16):
+		RF[-4] = 1
+	else:
+		RF[r3] = x
+	programCounter = programCounter + 1
 
-def div(r3, r4):
-    if(not checkRegBounds(r3,r4,'R0')):
-        binaryStack.append('10111' + '00000' + regtoBinary(r3) + regtoBinary(r4))
+def div(instruction):
+	r1 = binaryToInteger(instruction[6:9])
+	r2 = binaryToInteger(instruction[10:13])
+	global RF
+	RF[0] = int(RF[r1]/RF[r2])
+	RF[1] = RF[r1] - (RF[r2]*RF[0])
+	programCounter = programCounter + 1
 
-def rightS(r1, val):
-    a = checkRegBounds(r1,'R0','R0')
-    b = checkWholeRange(val)
-    if(not checkRegBounds(r1,'R0','R0') and not b):
-        binaryStack.append('11000' + regtoBinary(r1) + immtoBinary(val))
-
-
-def leftS(r1, val):
-    b = checkWholeRange(val)
-    if(not checkRegBounds(r1,'R0','R0') and not b):
-        binaryStack.append('11001' + regtoBinary(r1) + immtoBinary(val))
-
-def exor(r1,r2,r3):
-    if(not checkRegBounds(r1,r2,r3)):
-        binaryStack.append('11010' + '00' + regtoBinary(r1) + regtoBinary(r2) + regtoBinary(r3))
-
-
-def ore(r1,r2,r3):
-    if(not checkRegBounds(r1,r2,r3)):
-        binaryStack.append('11011' + '00' + regtoBinary(r1) + regtoBinary(r2) + regtoBinary(r3))
+def rightS(instruction):
+	r1 = binaryToInteger(instruction[0:3])
+	imm = binaryToInteger(instruction[4:12])
+	global RF
+	RF[r1] = RF[r1] / (2 ** imm)
+	programCounter = programCounter + 1;
 
 
-def andy(r1,r2,r3):
-    if(not checkRegBounds(r1,r2,r3)):
-        binaryStack.append('11100' + '00' + regtoBinary(r1) + regtoBinary(r2) + regtoBinary(r3))
+def leftS(instruction):
+	r1 = binaryToInteger(instruction[0:3])
+	imm = binaryToInteger(instruction[4:12])
+	global RF
+	RF[r1] = RF[r1] * (2 ** imm)
+	programCounter = programCounter + 1;
 
-def invert(r1,r2):
-    if(not checkRegBounds(r1,r2,'R0')):
-        binaryStack.append('10111' + '00000' + regtoBinary(r1) + regtoBinary(r2))
+def exor(instruction):
+	r1 = binaryToInteger(instruction[2:5])
+	r2 = binaryToInteger(instruction[6:9])
+	r3 = binaryToInteger(instruction[10:13])
+	global RF
+	RF[r3] = RF[r2] ^ RF[r1]
+	programCounter = programCounter + 1
 
-def cmp(r1,r2):
-    if(not checkRegBounds(r1,r2,'R0')):
-        binaryStack.append('10111' + '00000' + regtoBinary(r1) + regtoBinary(r2))
 
-def unconJmp(label):
-    if(not checkLabel(label)):
-        binaryStack.append('11111' + '000' + immtoBinary(labelStack.get(label)[0]))
+def ore(instruction):
+	r1 = binaryToInteger(instruction[2:5])
+	r2 = binaryToInteger(instruction[6:9])
+	r3 = binaryToInteger(instruction[10:13])
+	global RF
+	RF[r3] = RF[r2] | RF[r1]
+	programCounter = programCounter + 1
 
-def lessJmp(addr):
-    if(not checkLabel(addr)):
-        binaryStack.append('01100' + '000' + immtoBinary(labelStack.get(label)[0]))
+def andy(instruction):
+	r1 = binaryToInteger(instruction[2:5])
+	r2 = binaryToInteger(instruction[6:9])
+	r3 = binaryToInteger(instruction[10:13])
+	global RF
+	RF[r3] = RF[r2] & RF[r1]
+	programCounter = programCounter + 1
 
-def greaterJmp(addr):
-    if(not checkLabel(addr)):
-        binaryStack.append('01101' + '000' + immtoBinary(labelStack.get(label)[0]))
+def invert(instruction):
+	r1 = binaryToInteger(instruction[6:9])
+	r2 = binaryToInteger(instruction[10:13])
+	global RF
+	RF[r2] = ~RF[r1]
+	programCounter = programCounter + 1
 
-def equalJmp(addr):
-    if(not checkLabel(addr)):
-        binaryStack.append('01111' + '000' + immtoBinary(labelStack.get(label)[0]))
+def cmp(instruction):
+	r1 = binaryToInteger(instruction[6:9])
+	r2 = binaryToInteger(instruction[10:13])
+	global RF
+	if(RF[r1] == RF[R2]):
+		RF[-1] = 1
+	if(RF[r1] > RF[R2]):
+		RF[-2] = 1
+	if(RF[r1] < RF[R2]):
+		RF[-3] = 1
+	programCounter = programCounter + 1
+
+def unconJmp(instruction):
+	addr = binaryToInteger(instruction[4:12])
+	programCounter = addr
+
+
+def lessJmp(instruction):
+	addr = binaryToInteger(instruction[4:12])
+	if(RF[-3] ==1):
+		programCounter = addr
+	else:
+		programCounter = programCounter + 1
+
+def greaterJmp(instruction):
+	addr = binaryToInteger(instruction[4:12])
+	if(RF[-2] == 1):
+		programCounter = addr
+	else:
+		programCounter = programCounter + 1
+
+def equalJmp(instruction):
+	addr = binaryToInteger(instruction[4:12])
+	if(RF[-1] ==1):
+		programCounter = addr
+	else:
+		programCounter = programCounter + 1
 
 def hlt():
-    if(programCounter != len(program) - 1):
-        errorStack.append('halt command not the last command, line Number: ' + (programCounter + 1).__str__() + "\n" + "Line: " + program[programCounter])
-    else:
-        binaryStack.append('01010' + '00000000000')
-
+	global halted
+	halted = True
+	
 while(not halted):
 	instruction = getData(memory, programCounter)
 	execute(instruction)
