@@ -1,6 +1,6 @@
 import sys
 
-MEM = [0] * 512
+MEM = [0] * 256
 programLength = initialize(MEM)
 programCounter = 0
 halted = False
@@ -65,8 +65,13 @@ def dump(memory):
 	for x in memory:
 		print(x)
 
-def integerToBinary(inty):
-	return 
+def integerToBinary16bit(inty):
+	return '{0:16b}'.format(inty) 
+
+
+def integerToBinary8bit(inty):
+	return '{0:08b}'.format(inty) 
+
 
 def binaryToInteger(bin):
 	return int(bin, 2)
@@ -236,7 +241,21 @@ def equalJmp(instruction):
 def hlt():
 	global halted
 	halted = True
-	
+
+def dumpPC(pc):
+	print(integerToBinary8bit(pc))
+
+def dumpRF(rf):
+	for x in rf[0:7]:
+		print(integerToBinary16bit(rf) + " ")
+	print("000000000000" + str(rf[-4]) + str(rf[-3]) + str(rf[-2]) + str(rf[-1]))
+
+def dumpMEM(memory):
+	for x in memory[0:programLength]:
+		print(x)
+	for x in memory[programLength:]:
+		print(integerToBinary16bit(x))
+		
 while(not halted):
 	instruction = getData(memory, programCounter)
 	execute(instruction)
