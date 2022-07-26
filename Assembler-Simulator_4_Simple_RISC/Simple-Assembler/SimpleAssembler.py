@@ -5,6 +5,7 @@ notvar = 0
 variableStack = {}
 varCounter = 0 
 labelStack = {}
+templabelStack = {}
 registerStack = [0,0,0,0,0,0]
 flagsStack = [0,0,0,0] #EGLV,0123
 binaryStack = []
@@ -186,7 +187,13 @@ def checkVar(variz):
 
 def checkLabel(addr):
     flag = 0
-    if(addr not in labelStack):
+    for x in program:
+        commands = x.split()
+            if(commands[0][-1] == ':'):
+                    templabel(commands[0][:-1])
+                    commands = commands[1:]
+
+    if(addr not in labelStack and addr not in templabelStack):
         if(addr in variableStack):
             flag = 1
             errorStack.append("variable is misused as a label " + addr + " Line Number: " + (programCounter + 1).__str__() + "\n" + "Line: " + program[programCounter])
@@ -241,6 +248,15 @@ def label(name):
         errorStack.append("Label contains space before ':' " + name + " Line Number: " + (programCounter + 1).__str__() + "\n" + "Line: " + program[programCounter])
         return
     labelStack[name] = [programCounter]
+
+def templabel(name):
+    global varCounter, templabelStack
+    if(name in labelStack):
+        return
+    if(' ' in name):
+        return
+    templabelStack[name] = [1]
+
 
 
 

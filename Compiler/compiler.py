@@ -257,7 +257,8 @@ def dumpMEM(memory):
 		print(integerToBinary16bit(x))
 		
 while(not halted):
-	instruction = getData(memory, programCounter)
+	instruction = getData(MEM, programCounter)
 	execute(instruction)
 	dump(programCounter)
 	dump(RF)
+dumpMEM(MEM)
