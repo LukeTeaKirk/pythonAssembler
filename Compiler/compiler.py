@@ -243,11 +243,11 @@ def hlt():
 	halted = True
 
 def dumpPC(pc):
-	print(integerToBinary8bit(pc))
+	print(integerToBinary8bit(pc), end = " ")
 
 def dumpRF(rf):
 	for x in rf[0:7]:
-		print(integerToBinary16bit(rf) + " ")
+		print(integerToBinary16bit(rf), end =" ")
 	print("000000000000" + str(rf[-4]) + str(rf[-3]) + str(rf[-2]) + str(rf[-1]))
 
 def dumpMEM(memory):
