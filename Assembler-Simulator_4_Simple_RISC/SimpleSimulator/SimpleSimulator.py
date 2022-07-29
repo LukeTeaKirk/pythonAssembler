@@ -1,17 +1,20 @@
 import sys
 
 MEM = [0] * 256
-programLength = initialize(MEM)
 programCounter = 0
 halted = False
 RF = [0] * 11 #0,1,2,3,4,5,6,v,l,g,e
 
 def initialize(memory):
 	listy = sys.stdin.read().split("\n")
+	listy = list(filter(None, listy))
 	count = 0
-    for x in listy:
-    	memory[count] = x
-    return len(listy)
+	for x in listy:
+		memory[count] = x
+		count = count + 1
+	return len(listy)
+
+programLength = initialize(MEM)
 
 def getData(memory, PC):
 	return memory[programCounter]
@@ -59,14 +62,10 @@ def execute(instruction):
 		case '01111':
 			equalJmp(notOpcode)
 		case '01010':
-			hlt(notOpcode)
-
-def dump(memory):
-	for x in memory:
-		print(x)
+			hlt()
 
 def integerToBinary16bit(inty):
-	return '{0:16b}'.format(inty) 
+	return '{0:016b}'.format(inty) 
 
 
 def integerToBinary8bit(inty):
@@ -81,17 +80,17 @@ def getVariable(addr):
 
 def add(instruction):
 	r1 = binaryToInteger(instruction[2:5])
-	r2 = binaryToInteger(instruction[6:9])
-	r3 = binaryToInteger(instruction[10:13])
-	global RF
+	r2 = binaryToInteger(instruction[5:8])
+	r3 = binaryToInteger(instruction[8:11])
+	global RF, programCounter
 	RF[r3] = RF[r2] + RF[r1]
 	programCounter = programCounter + 1
 
 def sub(instruction):
 	r1 = binaryToInteger(instruction[2:5])
-	r2 = binaryToInteger(instruction[6:9])
-	r3 = binaryToInteger(instruction[10:13])
-	global RF
+	r2 = binaryToInteger(instruction[5:8])
+	r3 = binaryToInteger(instruction[8:11])
+	global RF, programCounter
 	if(RF[r2] > RF[r1]):
 		RF[r3] = 0
 		RF[-4] = 1
@@ -101,8 +100,8 @@ def sub(instruction):
 
 def movI(instruction):
 	r1 = binaryToInteger(instruction[0:3])
-	imm = binaryToInteger(instruction[4:12])
-	global RF
+	imm = binaryToInteger(instruction[3:11])
+	global RF, programCounter
 	RF[r1] = imm
 	programCounter = programCounter + 1;
 
@@ -113,31 +112,31 @@ def movF(instruction):
         binaryStack.append('1001100000' + regtoBinary(r1) + '111')
 
 def movR(instruction):
-	r1 = binaryToInteger(instruction[6:9])
-	r2 = binaryToInteger(instruction[10:13])
-	global RF
+	r1 = binaryToInteger(instruction[5:8])
+	r2 = binaryToInteger(instruction[8:11])
+	global RF, programCounter
 	RF[r2] = RF[r1]
 	programCounter = programCounter + 1
 
 def load(instruction):
 	r1 = binaryToInteger(instruction[0:3])
-	addr = binaryToInteger(instruction[4:12])
-	global MEM, RF
+	addr = binaryToInteger(instruction[3:11])
+	global MEM, RF, programCounter
 	RF[r1] = MEM[addr]
 	programCounter = programCounter + 1
 
-def str(instruction):
+def store(instruction):
 	r1 = binaryToInteger(instruction[0:3])
-	addr = binaryToInteger(instruction[4:12])
-	global MEM, RF
+	addr = binaryToInteger(instruction[3:11])
+	global MEM, RF, programCounter
 	MEM[addr] = RF[r1] 
 	programCounter = programCounter + 1
 
 def mul(instruction):
 	r1 = binaryToInteger(instruction[2:5])
-	r2 = binaryToInteger(instruction[6:9])
-	r3 = binaryToInteger(instruction[10:13])
-	global RF
+	r2 = binaryToInteger(instruction[5:8])
+	r3 = binaryToInteger(instruction[8:11])
+	global RF, programCounter
 	x = RF[r2] * RF[r1]
 	if(x > 2^16):
 		RF[-4] = 1
@@ -146,93 +145,97 @@ def mul(instruction):
 	programCounter = programCounter + 1
 
 def div(instruction):
-	r1 = binaryToInteger(instruction[6:9])
-	r2 = binaryToInteger(instruction[10:13])
-	global RF
+	r1 = binaryToInteger(instruction[5:8])
+	r2 = binaryToInteger(instruction[8:11])
+	global RF, programCounter
 	RF[0] = int(RF[r1]/RF[r2])
 	RF[1] = RF[r1] - (RF[r2]*RF[0])
 	programCounter = programCounter + 1
 
 def rightS(instruction):
 	r1 = binaryToInteger(instruction[0:3])
-	imm = binaryToInteger(instruction[4:12])
-	global RF
+	imm = binaryToInteger(instruction[3:11])
+	global RF, programCounter
 	RF[r1] = RF[r1] / (2 ** imm)
 	programCounter = programCounter + 1;
 
 
 def leftS(instruction):
 	r1 = binaryToInteger(instruction[0:3])
-	imm = binaryToInteger(instruction[4:12])
+	imm = binaryToInteger(instruction[3:11])
 	global RF
 	RF[r1] = RF[r1] * (2 ** imm)
 	programCounter = programCounter + 1;
 
 def exor(instruction):
 	r1 = binaryToInteger(instruction[2:5])
-	r2 = binaryToInteger(instruction[6:9])
-	r3 = binaryToInteger(instruction[10:13])
-	global RF
+	r2 = binaryToInteger(instruction[5:8])
+	r3 = binaryToInteger(instruction[8:11])
+	global RF, programCounter
 	RF[r3] = RF[r2] ^ RF[r1]
 	programCounter = programCounter + 1
 
 
 def ore(instruction):
 	r1 = binaryToInteger(instruction[2:5])
-	r2 = binaryToInteger(instruction[6:9])
-	r3 = binaryToInteger(instruction[10:13])
-	global RF
+	r2 = binaryToInteger(instruction[5:8])
+	r3 = binaryToInteger(instruction[8:11])
+	global RF, programCounter
 	RF[r3] = RF[r2] | RF[r1]
 	programCounter = programCounter + 1
 
 def andy(instruction):
 	r1 = binaryToInteger(instruction[2:5])
-	r2 = binaryToInteger(instruction[6:9])
-	r3 = binaryToInteger(instruction[10:13])
-	global RF
+	r2 = binaryToInteger(instruction[5:8])
+	r3 = binaryToInteger(instruction[8:11])
+	global RF, programCounter
 	RF[r3] = RF[r2] & RF[r1]
 	programCounter = programCounter + 1
 
 def invert(instruction):
-	r1 = binaryToInteger(instruction[6:9])
-	r2 = binaryToInteger(instruction[10:13])
-	global RF
+	r1 = binaryToInteger(instruction[5:8])
+	r2 = binaryToInteger(instruction[8:11])
+	global RF, programCounter
 	RF[r2] = ~RF[r1]
 	programCounter = programCounter + 1
 
 def cmp(instruction):
-	r1 = binaryToInteger(instruction[6:9])
-	r2 = binaryToInteger(instruction[10:13])
-	global RF
-	if(RF[r1] == RF[R2]):
+	r1 = binaryToInteger(instruction[5:8])
+	r2 = binaryToInteger(instruction[8:11])
+	global RF, programCounter
+	if(RF[r1] == RF[r2]):
 		RF[-1] = 1
-	if(RF[r1] > RF[R2]):
+	if(RF[r1] > RF[r2]):
 		RF[-2] = 1
-	if(RF[r1] < RF[R2]):
+	if(RF[r1] < RF[r2]):
 		RF[-3] = 1
 	programCounter = programCounter + 1
 
 def unconJmp(instruction):
-	addr = binaryToInteger(instruction[4:12])
+	global programCounter
+	addr = binaryToInteger(instruction[3:11])
 	programCounter = addr
 
 
 def lessJmp(instruction):
-	addr = binaryToInteger(instruction[4:12])
+	global programCounter
+	addr = binaryToInteger(instruction[3:11])
 	if(RF[-3] ==1):
 		programCounter = addr
 	else:
 		programCounter = programCounter + 1
 
 def greaterJmp(instruction):
-	addr = binaryToInteger(instruction[4:12])
+	global programCounter
+	addr = binaryToInteger(instruction[3:11])
 	if(RF[-2] == 1):
 		programCounter = addr
 	else:
 		programCounter = programCounter + 1
 
 def equalJmp(instruction):
-	addr = binaryToInteger(instruction[4:12])
+	global programCounter
+	addr = binaryToInteger(instruction[3:11])
 	if(RF[-1] ==1):
 		programCounter = addr
 	else:
@@ -247,7 +250,7 @@ def dumpPC(pc):
 
 def dumpRF(rf):
 	for x in rf[0:7]:
-		print(integerToBinary16bit(rf), end =" ")
+		print(integerToBinary16bit(x), end =" ")
 	print("000000000000" + str(rf[-4]) + str(rf[-3]) + str(rf[-2]) + str(rf[-1]))
 
 def dumpMEM(memory):
@@ -256,9 +259,10 @@ def dumpMEM(memory):
 	for x in memory[programLength:]:
 		print(integerToBinary16bit(x))
 		
+
 while(not halted):
 	instruction = getData(MEM, programCounter)
 	execute(instruction)
-	dump(programCounter)
-	dump(RF)
-dumpMEM(MEM)
+	dumpPC(programCounter)
+	dumpRF(RF)
+#dumpMEM(MEM)
