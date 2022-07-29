@@ -261,8 +261,9 @@ def dumpMEM(memory):
 		
 
 while(not halted):
+	oldPC = programCounter
 	instruction = getData(MEM, programCounter)
 	execute(instruction)
-	dumpPC(programCounter)
+	dumpPC(oldPC)
 	dumpRF(RF)
-#dumpMEM(MEM)
+dumpMEM(MEM)
