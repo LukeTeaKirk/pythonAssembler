@@ -4,7 +4,7 @@ MEM = [0] * 256
 programCounter = 0
 halted = False
 RF = [0] * 11 #0,1,2,3,4,5,6,v,l,g,e
-
+flagOp = False
 def initialize(memory):
 	listy = sys.stdin.read().split("\n")
 	listy = list(filter(None, listy))
@@ -82,18 +82,24 @@ def add(instruction):
 	r1 = binaryToInteger(instruction[2:5])
 	r2 = binaryToInteger(instruction[5:8])
 	r3 = binaryToInteger(instruction[8:11])
-	global RF, programCounter
-	RF[r3] = RF[r2] + RF[r1]
+	global RF, programCounter, flagOp
+	temp = RF[r2] + RF[r1]
+	if(temp > 2^16):
+		flagOp = True
+		RF[-4] = 1
+	else:
+		RF[r3] = temp
 	programCounter = programCounter + 1
 
 def sub(instruction):
 	r1 = binaryToInteger(instruction[2:5])
 	r2 = binaryToInteger(instruction[5:8])
 	r3 = binaryToInteger(instruction[8:11])
-	global RF, programCounter
+	global RF, programCounter, flagOp
 	if(RF[r2] > RF[r1]):
 		RF[r3] = 0
 		RF[-4] = 1
+		flagOp = True
 	else:
 		RF[r3] = RF[r2] + RF[r1]
 	programCounter = programCounter + 1
@@ -115,7 +121,11 @@ def movR(instruction):
 	r1 = binaryToInteger(instruction[5:8])
 	r2 = binaryToInteger(instruction[8:11])
 	global RF, programCounter
-	RF[r2] = RF[r1]
+	if(r1 == 7):
+		temp = binaryToInteger(str(RF[-4]) + str(RF[-3]) + str(RF[-2]) + str(RF[-1]))
+		RF[r2] = temp
+	else:
+		RF[r2] = RF[r1]
 	programCounter = programCounter + 1
 
 def load(instruction):
@@ -136,10 +146,11 @@ def mul(instruction):
 	r1 = binaryToInteger(instruction[2:5])
 	r2 = binaryToInteger(instruction[5:8])
 	r3 = binaryToInteger(instruction[8:11])
-	global RF, programCounter
+	global RF, programCounter, flagOp
 	x = RF[r2] * RF[r1]
 	if(x > 2^16):
 		RF[-4] = 1
+		flagOp = True
 	else:
 		RF[r3] = x
 	programCounter = programCounter + 1
@@ -202,13 +213,14 @@ def invert(instruction):
 def cmp(instruction):
 	r1 = binaryToInteger(instruction[5:8])
 	r2 = binaryToInteger(instruction[8:11])
-	global RF, programCounter
+	global RF, programCounter, flagOp
 	if(RF[r1] == RF[r2]):
 		RF[-1] = 1
 	if(RF[r1] > RF[r2]):
 		RF[-2] = 1
 	if(RF[r1] < RF[r2]):
 		RF[-3] = 1
+	flagOp = True
 	programCounter = programCounter + 1
 
 def unconJmp(instruction):
@@ -261,9 +273,16 @@ def dumpMEM(memory):
 		
 
 while(not halted):
+	oldFlags = RF[-4:]
 	oldPC = programCounter
 	instruction = getData(MEM, programCounter)
 	execute(instruction)
+	if(flagOp == False):
+		RF[-4] = 0
+		RF[-3] = 0
+		RF[-2] = 0
+		RF[-1] = 0
+	flagOp = False
 	dumpPC(oldPC)
 	dumpRF(RF)
 dumpMEM(MEM)
