@@ -26,7 +26,7 @@ def main():
             try:
                 left = []
                 if('FLAGS' in commands):
-                    if(len(commands) == 3 and commands[-1] == 'FLAGS' and 'mov' == commands[0]):
+                    if(len(commands) == 3 and commands[-2] == 'FLAGS' and 'mov' == commands[0]):
                         pass
                     else:                
                         errorStack.append("Invalid usage of Flags register in line number " + (programCounter + 1).__str__() + "\n" + "Line: " + x)
@@ -63,7 +63,7 @@ def main():
                             movI(commands[1], commands[2])
                             left = commands[3:]
                         else:
-                            if(commands[2] == 'FLAGS'): 
+                            if(commands[1] == 'FLAGS'): 
                                 movF(commands[1], commands[2])
                                 left = commands[3:]
                             elif('FLAGS' not in commands):
@@ -274,8 +274,8 @@ def movI(r1, val):
         binaryStack.append('10010' + regtoBinary(r1) + immtoBinary(val))
 
 def movF(r1,r2):
-    if(not checkRegBounds(r1, 'R0', 'R0') and r2 == 'FLAGS'):
-        binaryStack.append('1001100000' + regtoBinary(r1) + '111')
+    if(not checkRegBounds(r2, 'R0', 'R0') and r1 == 'FLAGS'):
+        binaryStack.append('1001100000' + regtoBinary(r2) + '111')
 
 def movR(r1,r2):
     if(not checkRegBounds(r1, r2, 'R0')):
