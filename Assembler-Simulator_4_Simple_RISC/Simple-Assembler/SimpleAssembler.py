@@ -189,9 +189,9 @@ def checkLabel(addr):
     flag = 0
     for x in program:
         commands = x.split()
-            if(commands[0][-1] == ':'):
-                    templabel(commands[0][:-1])
-                    commands = commands[1:]
+        if(commands[0][-1] == ':'):
+                templabel(commands[0][:-1])
+                commands = commands[1:]
 
     if(addr not in labelStack and addr not in templabelStack):
         if(addr in variableStack):
@@ -337,19 +337,39 @@ def cmp(r1,r2):
 
 def unconJmp(label):
     if(not checkLabel(label)):
-        binaryStack.append('11111' + '000' + immtoBinary(labelStack.get(label)[0]))
+        temp = ''
+        if(label not in labelStack):
+            temp = templabelStack.get(label)
+        else:
+            temp = labelStack.get(label)
+        binaryStack.append('11111' + '000' + immtoBinary(temp[0]))
 
-def lessJmp(addr):
-    if(not checkLabel(addr)):
-        binaryStack.append('01100' + '000' + immtoBinary(labelStack.get(label)[0]))
+def lessJmp(label):
+    if(not checkLabel(label)):
+        temp = ''
+        if(label not in labelStack):
+            temp = templabelStack.get(label)
+        else:
+            temp = labelStack.get(label)
+        binaryStack.append('01100' + '000' + immtoBinary(temp[0]))
 
-def greaterJmp(addr):
-    if(not checkLabel(addr)):
-        binaryStack.append('01101' + '000' + immtoBinary(labelStack.get(label)[0]))
+def greaterJmp(label):
+    if(not checkLabel(label)):
+        temp = ''
+        if(label not in labelStack):
+            temp = templabelStack.get(label)
+        else:
+            temp = labelStack.get(label)
+        binaryStack.append('01101' + '000' + immtoBinary(temp[0]))
 
-def equalJmp(addr):
-    if(not checkLabel(addr)):
-        binaryStack.append('01111' + '000' + immtoBinary(labelStack.get(label)[0]))
+def equalJmp(label):
+    if(not checkLabel(label)):
+        temp = ''
+        if(label not in labelStack):
+            temp = templabelStack.get(label)
+        else:
+            temp = labelStack.get(label)
+        binaryStack.append('01111' + '000' + immtoBinary(temp[0]))
 
 def hlt():
     if(programCounter != len(program) - 1):
