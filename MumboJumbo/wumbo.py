@@ -1,0 +1,2 @@
+memorySpace = input()
+memoryAddress = input()
