@@ -89,11 +89,12 @@ def integerToBinary16bit(inty):
 def integerToBinary8bit(inty):
 	return '{0:08b}'.format(inty) 
 
-
 def binaryToInteger(bin):
 	return int(bin, 2)
+
 def getVariable(addr):
 	return MEM[addr + programLength]
+
 def exptoBinary(val):
     try:
         return '{0:03b}'.format(val)
@@ -118,15 +119,34 @@ def ftoBinary(val):
     s = s + exptoBinary(e) + b
     return s
 
+def checkFloatingRange(val):
+    val = float(val[1:])
+    m,e = math.frexp(val)
+    integerVal = int(val)
+    flag = 0
+    b = str(Binary(m))[4:]
+    if(e.bit_length() > 3):
+        flag = 2 #range error
+    if(len(b)>5): #accuracy error
+        flag = 1
+    return flag
+
 def Fadd(instruction):
 	r1 = binaryToInteger(instruction[2:5])
 	r2 = binaryToInteger(instruction[5:8])
 	r3 = binaryToInteger(instruction[8:11])
 	global RF, programCounter, flagOp
 	temp = RF[r2] + RF[r1]
-	if(temp > 2**16):
+	if(checkFloatingRange('$' + str(temp)) == 1):
 		flagOp = True
 		RF[-4] = 1
+		RF[r3] = 0
+		floating[r3] = 2
+	elif(checkFloatingRange('$' + str(temp)) == 2):
+		flagOp = True
+		RF[-4] = 1
+		RF[r3] = 124
+		floating[r3] = 3
 	else:
 		RF[r3] = temp
 		floating[r3] = 1
@@ -138,12 +158,25 @@ def Fsub(instruction):
 	r2 = binaryToInteger(instruction[5:8])
 	r3 = binaryToInteger(instruction[8:11])
 	global RF, programCounter, flagOp
+	temp = RF[r1] - RF[r2]
 	if(RF[r2] > RF[r1]):
-		RF[r3] = 0
-		RF[-4] = 1
 		flagOp = True
+		RF[-4] = 1
+		RF[r3] = 124
+		floating[r3] = 2
+	
+	elif(checkFloatingRange('$' + str(temp)) == 2):
+		flagOp = True
+		RF[-4] = 1
+		RF[r3] = 124
+		floating[r3] = 3
+	elif(checkFloatingRange('$' + str(temp)) == 1):
+		flagOp = True
+		RF[-4] = 1
+		RF[r3] = 0
+		floating[r3] = 3
 	else:
-		RF[r3] = RF[r2] + RF[r1]
+		RF[r3] = temp
 		floating[r3] = 1
 	programCounter = programCounter + 1
 
@@ -170,7 +203,7 @@ def sub(instruction):
 		RF[-4] = 1
 		flagOp = True
 	else:
-		RF[r3] = RF[r2] + RF[r1]
+		RF[r3] = RF[r1] - RF[r2]
 	programCounter = programCounter + 1
 
 def movI(instruction):
@@ -341,7 +374,7 @@ def dumpPC(pc):
 def dumpRF(rf):
 	counter = 0
 	for x in rf[0:7]:
-		if(floating[counter] == 1):
+		if(floating[counter] != 0):
 			print(ftoBinary(x), end=" ")
 		else:
 			print(integerToBinary16bit(x), end =" ")
