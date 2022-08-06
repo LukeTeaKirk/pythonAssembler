@@ -15,7 +15,7 @@ flagsStack = [0,0,0,0] #EGLV,0123
 binaryStack = []
 errorStack = []
 program = []
-isa = ['var', 'add', 'sub', 'mov', 'ld', 'st', 'mul', 'div', 'rs', 'ls', 'xor', 'or', 'and', 'not', 'cmp', 'jmp', 'jlt', 'jgt', 'je', 'hlt']
+isa = ['addf', 'subf', 'movf', 'var', 'add', 'sub', 'mov', 'ld', 'st', 'mul', 'div', 'rs', 'ls', 'xor', 'or', 'and', 'not', 'cmp', 'jmp', 'jlt', 'jgt', 'je', 'hlt']
 def main():
     global program, programCounter, notvar, variableStack, varCounter, labelStack, registerStack, flagsStack, binaryStack, errorStack, program, ogVarCounter
     program = takeInput()
@@ -63,7 +63,7 @@ def main():
                             movFI(commands[1], commands[2])
                             left = commands[3:]
                         else:
-                            errorStack.append("Unexpected parameters in line number " + (programCounter + 1).__str__() + "\n" + "Line: " + x)                    else:
+                            errorStack.append("Unexpected parameters in line number " + (programCounter + 1).__str__() + "\n" + "Line: " + x)
                     else:
                         errorStack.append("Unexpected parameters in line number " + (programCounter + 1).__str__() + "\n" + "Line: " + x)
 
@@ -103,7 +103,7 @@ def main():
                     load(commands[1], commands[2])
                     left = commands[3:]
                 if(commands[0] == 'st'):
-                    str(commands[1], commands[2])
+                    stri(commands[1], commands[2])
                     left = commands[3:]
                 if(commands[0] == 'mul'):
                     mul(commands[1], commands[2], commands[3])
@@ -154,6 +154,7 @@ def main():
             except IndexError:
                 errorStack.append("Expected more parameters in line number:  " + (programCounter + 1).__str__()+ "\n" + "Line: " + x)
             except Exception as e:
+                print(e)
                 errorStack.append("General Syntax error in line number " + (programCounter + 1).__str__()+ "\n" + "Line: " + x)
             programCounter = programCounter + 1
     if(len(errorStack)==0):
@@ -194,10 +195,11 @@ def checkFloatingRange(val):
     m,e = math.frexp(val)
     integerVal = int(val)
     flag = 0
+    b = str(Binary(m))[4:]
     if(e.bit_length() > 3):
         flag = 1
         errorStack.append("floater is out of range " + val + " Line Number: " + (programCounter + 1).__str__() + "\n" + "Line: " + program[programCounter])
-    if(len(m)>5):
+    if(len(b)>5):
         errorStack.append("floater is out of range " + val + " Line Number: " + (programCounter + 1).__str__() + "\n" + "Line: " + program[programCounter])
         flag = 1
     return flag
@@ -249,16 +251,27 @@ def immtoBinary(val):
     except:
         return '{0:08b}'.format(int(val[1:])) 
 
+def exptoBinary(val):
+    try:
+        return '{0:03b}'.format(val)
+    except:
+        return '{0:03b}'.format(int(val[1:])) 
+
 def ftoBinary(val):
-    val = float(val)
+    val = float(val[1:])
     m,e = math.frexp(val)
     s = ''
     b = str(Binary(m))[4:]
     if(len(b) == 1):
+        b = b + '0000'
+    if(len(b) == 2):
+        b = b + '000'
+    if(len(b) == 3):
         b = b + '00'
-    if(len(b) = 2):
+    if(len(b) == 4):
         b = b + '0'
-    s = immtoBinary(e) + b
+
+    s = exptoBinary(e) + b
     return s
     
 def regtoBinary(r1):
@@ -353,7 +366,7 @@ def load(r1, vari):
     if(not a and not b):
         binaryStack.append('10100' + regtoBinary(r1) + immtoBinary(variableStack.get(vari)))
 
-def str(r1, vari):
+def stri(r1, vari):
     a = checkRegBounds(r1,'R0','R0')
     b = checkVar(vari)
     if(not a and not b):
