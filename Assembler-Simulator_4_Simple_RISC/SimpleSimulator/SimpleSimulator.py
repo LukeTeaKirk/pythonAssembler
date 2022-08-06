@@ -1,5 +1,7 @@
 import sys
 import matplotlib.pyplot as plt
+import math
+from binary_fractions import Binary
 
 cycleCount = 0
 clocks = []
@@ -10,6 +12,7 @@ halted = False
 RF = [0] * 11 #0,1,2,3,4,5,6,v,l,g,e
 Exponents = [0] * 7
 flagOp = False
+floating = [0] * 7
 def initialize(memory):
 	listy = sys.stdin.read().split("\n")
 	listy = list(filter(None, listy))
@@ -89,9 +92,31 @@ def integerToBinary8bit(inty):
 
 def binaryToInteger(bin):
 	return int(bin, 2)
-
 def getVariable(addr):
 	return MEM[addr + programLength]
+def exptoBinary(val):
+    try:
+        return '{0:03b}'.format(val)
+    except:
+        return '{0:03b}'.format(int(val[1:])) 
+
+def ftoBinary(val):
+    val = float(val[1:])
+    m,e = math.frexp(val)
+    s = '00000000'
+    b = str(Binary(m))[4:]
+    if(len(b) = 0):
+    	b = '00000'
+    if(len(b) == 1):
+        b = b + '0000'
+    if(len(b) == 2):
+        b = b + '000'
+    if(len(b) == 3):
+        b = b + '00'
+    if(len(b) == 4):
+        b = b + '0'
+    s = s + exptoBinary(e) + b
+    return s
 
 def Fadd(instruction):
 	r1 = binaryToInteger(instruction[2:5])
@@ -104,6 +129,22 @@ def Fadd(instruction):
 		RF[-4] = 1
 	else:
 		RF[r3] = temp
+		floating[r3] = 1
+	programCounter = programCounter + 1
+
+
+def Fsub(instruction):
+	r1 = binaryToInteger(instruction[2:5])
+	r2 = binaryToInteger(instruction[5:8])
+	r3 = binaryToInteger(instruction[8:11])
+	global RF, programCounter, flagOp
+	if(RF[r2] > RF[r1]):
+		RF[r3] = 0
+		RF[-4] = 1
+		flagOp = True
+	else:
+		RF[r3] = RF[r2] + RF[r1]
+		floating[r3] = 1
 	programCounter = programCounter + 1
 
 def add(instruction):
@@ -138,12 +179,15 @@ def movI(instruction):
 	global RF, programCounter
 	RF[r1] = imm
 	programCounter = programCounter + 1;
+	floating[r1] = 0
 
-
-
-def movF(instruction):
-    if(not checkRegBounds(r1, 'R0', 'R0') and r2 == 'FLAGS'):
-        binaryStack.append('1001100000' + regtoBinary(r1) + '111')
+def MovFImm(instruction):
+	r1 = binaryToInteger(instruction[0:3])
+	imm = binaryToInteger(instruction[3:11])
+	global RF, programCounter
+	RF[r1] = imm
+	floating[r1] = 1
+	programCounter = programCounter + 1;
 
 def movR(instruction):
 	r1 = binaryToInteger(instruction[5:8])
@@ -155,6 +199,7 @@ def movR(instruction):
 	else:
 		RF[r2] = RF[r1]
 	programCounter = programCounter + 1
+	floating[r2] = 0
 
 def load(instruction):
 	r1 = binaryToInteger(instruction[0:3])
@@ -164,6 +209,7 @@ def load(instruction):
 	programCounter = programCounter + 1
 	clocks.append(cycleCount)
 	memAddr.append(addr)
+	floating[r1] = 0
 
 def store(instruction):
 	r1 = binaryToInteger(instruction[0:3])
@@ -293,8 +339,12 @@ def dumpPC(pc):
 	print(integerToBinary8bit(pc), end = " ")
 
 def dumpRF(rf):
+	counter = 0
 	for x in rf[0:7]:
-		print(integerToBinary16bit(x), end =" ")
+		if(floating[counter] == 1):
+			print(ftoBinary(x), end=" ")
+		else:
+			print(integerToBinary16bit(x), end =" ")
 	print("000000000000" + str(rf[-4]) + str(rf[-3]) + str(rf[-2]) + str(rf[-1]))
 
 def dumpMEM(memory):
