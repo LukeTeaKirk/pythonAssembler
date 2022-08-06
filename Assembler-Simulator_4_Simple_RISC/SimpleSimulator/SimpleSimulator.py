@@ -105,7 +105,7 @@ def ftoBinary(val):
     m,e = math.frexp(val)
     s = '00000000'
     b = str(Binary(m))[4:]
-    if(len(b) = 0):
+    if(len(b) == 0):
     	b = '00000'
     if(len(b) == 1):
         b = b + '0000'
