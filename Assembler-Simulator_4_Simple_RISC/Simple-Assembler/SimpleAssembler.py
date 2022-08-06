@@ -1,4 +1,6 @@
 import sys
+import math
+from binary_fractions import Binary
 
 tempPC = 0
 programCounter = 0
@@ -42,6 +44,29 @@ def main():
                         for x in variableStack:
                             variableStack[x] = variableStack[x] - len(variableStack)
                     notvar = 1
+                if(commands[0] == 'addf'):
+                    if(len(commands) == 4):
+                        addf(commands[1], commands[2], commands[3])
+                        left = commands[4:]
+                    else:
+                        errorStack.append("Unexpected parameters in line number " + (programCounter + 1).__str__() + "\n" + "Line: " + x)
+                if(commands[0] == 'subf'):
+                    if(len(commands) == 4):
+                        subf(commands[1], commands[2], commands[3])
+                        left = commands[4:]
+                    else:
+                        errorStack.append("Unexpected parameters in line number " + (programCounter + 1).__str__() + "\n" + "Line: " + x)
+
+                if(commands[0] == 'movf'):
+                    if(len(commands) == 3):
+                        if('$' in commands[2]):
+                            movFI(commands[1], commands[2])
+                            left = commands[3:]
+                        else:
+                            errorStack.append("Unexpected parameters in line number " + (programCounter + 1).__str__() + "\n" + "Line: " + x)                    else:
+                    else:
+                        errorStack.append("Unexpected parameters in line number " + (programCounter + 1).__str__() + "\n" + "Line: " + x)
+
                 if(commands[0] == 'var'):
                     if(len(commands) == 2):
                         var(commands[1])
@@ -164,6 +189,19 @@ def checkRegBounds(r1, r2, r3):
             flag = 1
     return flag
 
+def checkFloatingRange(val):
+    val = float(val[1:])
+    m,e = math.frexp(val)
+    integerVal = int(val)
+    flag = 0
+    if(e.bit_length() > 3):
+        flag = 1
+        errorStack.append("floater is out of range " + val + " Line Number: " + (programCounter + 1).__str__() + "\n" + "Line: " + program[programCounter])
+    if(len(m)>5):
+        errorStack.append("floater is out of range " + val + " Line Number: " + (programCounter + 1).__str__() + "\n" + "Line: " + program[programCounter])
+        flag = 1
+    return flag
+
 def checkWholeRange(val):
     val = int(val[1:])
     flag = 0
@@ -210,6 +248,18 @@ def immtoBinary(val):
         return '{0:08b}'.format(val)
     except:
         return '{0:08b}'.format(int(val[1:])) 
+
+def ftoBinary(val):
+    val = float(val)
+    m,e = math.frexp(val)
+    s = ''
+    b = str(Binary(m))[4:]
+    if(len(b) == 1):
+        b = b + '00'
+    if(len(b) = 2):
+        b = b + '0'
+    s = immtoBinary(e) + b
+    return s
     
 def regtoBinary(r1):
     r1 = int(r1[1:])
@@ -261,6 +311,19 @@ def templabel(name):
     templabelStack[name] = [tempPC - varCounter + ogVarCounter]
 
 
+
+def addf(r1,r2,r3):
+    if(not checkRegBounds(r1,r2,r3)):
+        binaryStack.append('00000' + '00' + regtoBinary(r1) + regtoBinary(r2) + regtoBinary(r3))
+
+def subf(r1,r2,r3):
+    if(not checkRegBounds(r1,r2,r3)):
+        binaryStack.append('00001' + '00' + regtoBinary(r1) + regtoBinary(r2) + regtoBinary(r3))
+
+def movFI(r1, val):
+    b = checkFloatingRange(val)
+    if(not checkRegBounds(r1, 'R0', 'R0') and not b):
+        binaryStack.append('00010' + regtoBinary(r1) + ftoBinary(val))
 
 
 def add(r1,r2,r3):
