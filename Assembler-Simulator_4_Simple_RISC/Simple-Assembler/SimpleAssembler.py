@@ -1,8 +1,10 @@
 import sys
 
+tempPC = 0
 programCounter = 0
 notvar = 0
 variableStack = {}
+ogVarCounter = 0
 varCounter = 0 
 labelStack = {}
 templabelStack = {}
@@ -13,9 +15,10 @@ errorStack = []
 program = []
 isa = ['var', 'add', 'sub', 'mov', 'ld', 'st', 'mul', 'div', 'rs', 'ls', 'xor', 'or', 'and', 'not', 'cmp', 'jmp', 'jlt', 'jgt', 'je', 'hlt']
 def main():
-    global program, programCounter, notvar, variableStack, varCounter, labelStack, registerStack, flagsStack, binaryStack, errorStack, program
+    global program, programCounter, notvar, variableStack, varCounter, labelStack, registerStack, flagsStack, binaryStack, errorStack, program, ogVarCounter
     program = takeInput()
-    varCounter = len(program)
+    varCounter = len(program) -1
+    ogVarCounter = varCounter
     for x in program:
         if(len(x) == 0):
             programCounter = programCounter + 1
@@ -135,8 +138,6 @@ def main():
         for x in errorStack:
             print(x)
             print("\n")
-    
-
 
 def takeInput():
     listy = sys.stdin.read().split("\n")
@@ -187,12 +188,14 @@ def checkVar(variz):
 
 def checkLabel(addr):
     flag = 0
+    global tempPC
     for x in program:
         commands = x.split()
         if(commands[0][-1] == ':'):
                 templabel(commands[0][:-1])
                 commands = commands[1:]
-
+        tempPC = tempPC + 1
+    tempPC = 0
     if(addr not in labelStack and addr not in templabelStack):
         if(addr in variableStack):
             flag = 1
@@ -223,7 +226,7 @@ def regtoBinary(r1):
     if(r1 == 5):
         return '101'
     if(r1 == 6):
-        return '111'
+        return '110'
 
 def var(name):
     global varCounter, variableStack
@@ -240,22 +243,22 @@ def var(name):
     variableStack[name] = varCounter
 
 def label(name):
-    global varCounter, labelStack
+    global varCounter, labelStack,ogVarCounter
     if(name in labelStack):
         errorStack.append("Label already declared: " + name + " Line Number: " + (programCounter + 1).__str__() + "\n" + "Line: " + program[programCounter])
         return
     if(' ' in name):
         errorStack.append("Label contains space before ':' " + name + " Line Number: " + (programCounter + 1).__str__() + "\n" + "Line: " + program[programCounter])
         return
-    labelStack[name] = [programCounter]
+    labelStack[name] = [programCounter - varCounter + ogVarCounter]
 
 def templabel(name):
-    global varCounter, templabelStack
+    global varCounter, templabelStack, ogVarCounter, tempPC
     if(name in labelStack):
         return
     if(' ' in name):
         return
-    templabelStack[name] = [1]
+    templabelStack[name] = [tempPC - varCounter + ogVarCounter]
 
 
 
@@ -329,11 +332,11 @@ def andy(r1,r2,r3):
 
 def invert(r1,r2):
     if(not checkRegBounds(r1,r2,'R0')):
-        binaryStack.append('10111' + '00000' + regtoBinary(r1) + regtoBinary(r2))
+        binaryStack.append('11101' + '00000' + regtoBinary(r1) + regtoBinary(r2))
 
 def cmp(r1,r2):
     if(not checkRegBounds(r1,r2,'R0')):
-        binaryStack.append('10111' + '00000' + regtoBinary(r1) + regtoBinary(r2))
+        binaryStack.append('11110' + '00000' + regtoBinary(r1) + regtoBinary(r2))
 
 def unconJmp(label):
     if(not checkLabel(label)):

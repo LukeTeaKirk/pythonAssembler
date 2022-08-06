@@ -4,6 +4,7 @@ MEM = [0] * 256
 programCounter = 0
 halted = False
 RF = [0] * 11 #0,1,2,3,4,5,6,v,l,g,e
+Exponents = [0] * 7
 flagOp = False
 def initialize(memory):
 	listy = sys.stdin.read().split("\n")
@@ -23,6 +24,12 @@ def execute(instruction):
 	opcode = instruction[0:5]
 	notOpcode = instruction[5:]
 	match opcode:
+		case '00000':
+			Fadd(notOpcode)
+		case '00001':
+			Fsub(notOpcode)
+		case '00010':
+			MovFImm(notOpcode)
 		case '10000':
 			add(notOpcode)
 		case '10001':
@@ -78,13 +85,26 @@ def binaryToInteger(bin):
 def getVariable(addr):
 	return MEM[addr + programLength]
 
+def Fadd(instruction):
+	r1 = binaryToInteger(instruction[2:5])
+	r2 = binaryToInteger(instruction[5:8])
+	r3 = binaryToInteger(instruction[8:11])
+	global RF, programCounter, flagOp
+	temp = RF[r2] + RF[r1]
+	if(temp > 2**16):
+		flagOp = True
+		RF[-4] = 1
+	else:
+		RF[r3] = temp
+	programCounter = programCounter + 1
+
 def add(instruction):
 	r1 = binaryToInteger(instruction[2:5])
 	r2 = binaryToInteger(instruction[5:8])
 	r3 = binaryToInteger(instruction[8:11])
 	global RF, programCounter, flagOp
 	temp = RF[r2] + RF[r1]
-	if(temp > 2^16):
+	if(temp > 2**16):
 		flagOp = True
 		RF[-4] = 1
 	else:
@@ -148,7 +168,7 @@ def mul(instruction):
 	r3 = binaryToInteger(instruction[8:11])
 	global RF, programCounter, flagOp
 	x = RF[r2] * RF[r1]
-	if(x > 2^16):
+	if(x > 2**16):
 		RF[-4] = 1
 		flagOp = True
 	else:
