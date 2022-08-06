@@ -2,6 +2,7 @@ import sys
 import matplotlib.pyplot as plt
 
 cycleCount = 0
+clocks = []
 memAddr = []
 MEM = [0] * 256
 programCounter = 0
@@ -26,7 +27,9 @@ def getData(memory, PC):
 def execute(instruction):
 	opcode = instruction[0:5]
 	notOpcode = instruction[5:]
-	memAddr.append(cycleCount, programCounter)
+	global cycleCount
+	clocks.append(cycleCount)
+	memAddr.append(programCounter)
 	match opcode:
 		case '00000':
 			Fadd(notOpcode)
@@ -159,7 +162,8 @@ def load(instruction):
 	global MEM, RF, programCounter
 	RF[r1] = MEM[addr]
 	programCounter = programCounter + 1
-	memAddr.append(cycleCount,addr)
+	clocks.append(cycleCount)
+	memAddr.append(addr)
 
 def store(instruction):
 	r1 = binaryToInteger(instruction[0:3])
@@ -167,7 +171,8 @@ def store(instruction):
 	global MEM, RF, programCounter
 	MEM[addr] = RF[r1] 
 	programCounter = programCounter + 1
-	memAddr.append(cycleCount,addr)
+	clocks.append(cycleCount)
+	memAddr.append(addr)
 
 def mul(instruction):
 	r1 = binaryToInteger(instruction[2:5])
@@ -314,5 +319,5 @@ while(not halted):
 	dumpRF(RF)
 
 dumpMEM(MEM)
-plt.scatter(memAddr)
-plt.show
+plt.scatter(clocks, memAddr)
+plt.show()
